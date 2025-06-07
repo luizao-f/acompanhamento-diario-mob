@@ -9,12 +9,14 @@ import { Link } from 'react-router-dom';
 import CalendarGrid from '@/components/CalendarGrid';
 import DayFormModal from '@/components/DayFormModal';
 import CalendarLegend from '@/components/CalendarLegend';
+import FilterButtons from '@/components/FilterButtons';
 import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [highlightFilter, setHighlightFilter] = useState<string | null>(null);
   const { logout } = useAuth();
 
   const monthStart = startOfMonth(currentDate);
@@ -60,9 +62,9 @@ const Calendar = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
-      <div className="max-w-6xl mx-auto p-4">
+      <div className="max-w-7xl mx-auto p-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 bg-white rounded-lg shadow-sm p-4">
+        <div className="flex items-center justify-between mb-4 bg-white rounded-lg shadow-sm p-4">
           <div className="flex items-center gap-4">
             <CalendarIcon className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold text-primary">Método Billings</h1>
@@ -82,7 +84,7 @@ const Calendar = () => {
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between mb-6 bg-white rounded-lg shadow-sm p-4">
+        <div className="flex items-center justify-between mb-4 bg-white rounded-lg shadow-sm p-4">
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handlePreviousMonth}>
               <ChevronLeft className="h-4 w-4" />
@@ -135,17 +137,29 @@ const Calendar = () => {
           </div>
         </div>
 
+        {/* Filter Buttons */}
+        <div className="mb-4">
+          <FilterButtons 
+            activeFilter={highlightFilter}
+            onFilterChange={setHighlightFilter}
+          />
+        </div>
+
         {/* Calendar and Legend */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-3">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          <div className="lg:col-span-4">
             <CalendarGrid
               days={days}
               currentDate={currentDate}
               onDayClick={handleDayClick}
+              highlightFilter={highlightFilter}
             />
           </div>
           <div className="lg:col-span-1">
-            <CalendarLegend />
+            <div className="bg-white rounded-lg shadow-sm p-3">
+              <h3 className="text-sm font-medium text-gray-600 mb-3">Legenda</h3>
+              <CalendarLegend />
+            </div>
           </div>
         </div>
 

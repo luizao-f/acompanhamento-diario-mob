@@ -9,9 +9,10 @@ interface CalendarGridProps {
   days: Date[];
   currentDate: Date;
   onDayClick: (day: Date) => void;
+  highlightFilter?: string | null;
 }
 
-const CalendarGrid: React.FC<CalendarGridProps> = ({ days, currentDate, onDayClick }) => {
+const CalendarGrid: React.FC<CalendarGridProps> = ({ days, currentDate, onDayClick, highlightFilter }) => {
   const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
   return (
@@ -34,6 +35,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ days, currentDate, onDayCli
             isCurrentMonth={isSameMonth(day, currentDate)}
             isToday={isToday(day)}
             onClick={() => onDayClick(day)}
+            highlightFilter={highlightFilter}
           />
         ))}
       </div>

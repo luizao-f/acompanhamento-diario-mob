@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -48,9 +47,9 @@ const Comparison = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
-      <div className="max-w-7xl mx-auto p-4">
+      <div className="max-w-full mx-auto p-2 lg:p-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4 bg-white rounded-lg shadow-sm p-4">
+        <div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">
           <div className="flex items-center gap-4">
             <BarChart3 className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold text-primary">Comparação de Meses</h1>
@@ -70,7 +69,7 @@ const Comparison = () => {
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between mb-4 bg-white rounded-lg shadow-sm p-4">
+        <div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handlePreviousMonths}>
               <ChevronLeft className="h-4 w-4" />
@@ -121,20 +120,20 @@ const Comparison = () => {
         </div>
 
         {/* Filter Buttons */}
-        <div className="mb-4">
+        <div className="mb-3">
           <FilterButtons 
             activeFilter={highlightFilter}
             onFilterChange={setHighlightFilter}
           />
         </div>
 
-        {/* Comparison Grid and Legend */}
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-          {/* Calendários - 2x2 Grid */}
-          <div className="lg:col-span-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+        {/* Comparison Grid and Legend - Maximized layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-6 gap-3">
+          {/* Calendários - Ocupam mais espaço */}
+          <div className="xl:col-span-5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {months.map((month, index) => (
-                <div key={month.toISOString()} className="h-[400px]">
+                <div key={month.toISOString()} className="h-[500px]">
                   <ComparisonCalendar 
                     month={month} 
                     highlightFilter={highlightFilter}
@@ -144,11 +143,11 @@ const Comparison = () => {
             </div>
           </div>
           
-          {/* Legenda - mais sutil */}
-          <div className="lg:col-span-1">
+          {/* Legenda - mais sutil e compacta */}
+          <div className="xl:col-span-1">
             <div className="sticky top-4">
-              <div className="bg-white rounded-lg shadow-sm p-3">
-                <h3 className="text-sm font-medium text-gray-600 mb-3">Legenda</h3>
+              <div className="bg-white rounded-lg shadow-sm p-2 opacity-80 hover:opacity-100 transition-opacity">
+                <h3 className="text-xs font-medium text-gray-500 mb-2">Legenda</h3>
                 <CalendarLegend />
               </div>
             </div>

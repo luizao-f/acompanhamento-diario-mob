@@ -1,11 +1,5 @@
 
-import { createClient } from '@supabase/supabase-js';
-
-// Note: Estes são valores de exemplo. O usuário deve conectar sua integração Supabase real.
-const supabaseUrl = process.env.VITE_SUPABASE_URL || 'your-supabase-url';
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'your-supabase-anon-key';
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from '@/integrations/supabase/client';
 
 export interface BillingData {
   id?: string;
@@ -75,3 +69,6 @@ export const saveBillingData = async (data: Omit<BillingData, 'id' | 'created_at
     throw error;
   }
 };
+
+// Export the supabase client for direct use if needed
+export { supabase };

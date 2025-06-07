@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { format, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -13,21 +14,26 @@ import FilterButtons from '@/components/FilterButtons';
 const Comparison = () => {
   const [baseDate, setBaseDate] = useState(new Date());
   const [highlightFilter, setHighlightFilter] = useState<string | null>(null);
+  const [monthsToShow, setMonthsToShow] = useState(4);
   const { logout } = useAuth();
 
-  const months = [
-    subMonths(baseDate, 3),
-    subMonths(baseDate, 2),
-    subMonths(baseDate, 1),
-    baseDate,
-  ];
+  // Gerar os meses baseado na quantidade selecionada
+  const generateMonths = (baseDate: Date, count: number) => {
+    const months = [];
+    for (let i = count - 1; i >= 0; i--) {
+      months.push(subMonths(baseDate, i));
+    }
+    return months;
+  };
+
+  const months = generateMonths(baseDate, monthsToShow);
 
   const handlePreviousMonths = () => {
-    setBaseDate(subMonths(baseDate, 4));
+    setBaseDate(subMonths(baseDate, monthsToShow));
   };
 
   const handleNextMonths = () => {
-    setBaseDate(addMonths(baseDate, 4));
+    setBaseDate(addMonths(baseDate, monthsToShow));
   };
 
   const handleYearChange = (year: string) => {
@@ -42,8 +48,24 @@ const Comparison = () => {
     setBaseDate(newDate);
   };
 
+  const handleMonthsToShowChange = (value: string) => {
+    setMonthsToShow(parseInt(value));
+  };
+
   const currentYear = baseDate.getFullYear();
   const currentMonth = baseDate.getMonth();
+
+  // Definir grid layout baseado na quantidade de meses
+  const getGridCols = () => {
+    switch (monthsToShow) {
+      case 4: return 'lg:grid-cols-2 xl:grid-cols-4';
+      case 6: return 'lg:grid-cols-2 xl:grid-cols-3';
+      case 8: return 'lg:grid-cols-2 xl:grid-cols-4';
+      case 10: return 'lg:grid-cols-2 xl:grid-cols-5';
+      case 12: return 'lg:grid-cols-3 xl:grid-cols-4';
+      default: return 'lg:grid-cols-2 xl:grid-cols-4';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
@@ -73,20 +95,34 @@ const Comparison = () => {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handlePreviousMonths}>
               <ChevronLeft className="h-4 w-4" />
-              4 Meses Anteriores
+              {monthsToShow} Meses Anteriores
             </Button>
             <Button variant="outline" size="sm" onClick={handleNextMonths}>
-              Próximos 4 Meses
+              Próximos {monthsToShow} Meses
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
 
           <div className="flex items-center gap-4">
             <h2 className="text-lg font-semibold text-primary">
-              Comparação: {format(months[0], 'MMM', { locale: ptBR })} - {format(months[3], 'MMM yyyy', { locale: ptBR })}
+              Comparação: {format(months[0], 'MMM', { locale: ptBR })} - {format(months[months.length - 1], 'MMM yyyy', { locale: ptBR })}
             </h2>
             
             <div className="flex items-center gap-2">
+              {/* Seletor de quantidade de meses */}
+              <Select value={monthsToShow.toString()} onValueChange={handleMonthsToShowChange}>
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="4">4 meses</SelectItem>
+                  <SelectItem value="6">6 meses</SelectItem>
+                  <SelectItem value="8">8 meses</SelectItem>
+                  <SelectItem value="10">10 meses</SelectItem>
+                  <SelectItem value="12">12 meses</SelectItem>
+                </SelectContent>
+              </Select>
+
               <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
                 <SelectTrigger className="w-32">
                   <SelectValue />
@@ -127,31 +163,23 @@ const Comparison = () => {
           />
         </div>
 
-        {/* Comparison Grid and Legend - Maximized layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-6 gap-3">
-          {/* Calendários - Ocupam mais espaço */}
-          <div className="xl:col-span-5">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-              {months.map((month, index) => (
-                <div key={month.toISOString()} className="h-[500px]">
-                  <ComparisonCalendar 
-                    month={month} 
-                    highlightFilter={highlightFilter}
-                  />
-                </div>
-              ))}
-            </div>
+        {/* Legenda acima dos gráficos */}
+        <div className="mb-3">
+          <div className="bg-white rounded-lg shadow-sm p-3">
+            <CalendarLegend />
           </div>
-          
-          {/* Legenda - mais sutil e compacta */}
-          <div className="xl:col-span-1">
-            <div className="sticky top-4">
-              <div className="bg-white rounded-lg shadow-sm p-2 opacity-80 hover:opacity-100 transition-opacity">
-                <h3 className="text-xs font-medium text-gray-500 mb-2">Legenda</h3>
-                <CalendarLegend />
-              </div>
+        </div>
+
+        {/* Calendários de comparação ocupando toda a largura */}
+        <div className={`grid grid-cols-1 ${getGridCols()} gap-3`}>
+          {months.map((month, index) => (
+            <div key={month.toISOString()} className="h-[450px]">
+              <ComparisonCalendar 
+                month={month} 
+                highlightFilter={highlightFilter}
+              />
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

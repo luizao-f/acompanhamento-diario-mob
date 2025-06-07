@@ -4,10 +4,10 @@ import { Droplets, Heart, Circle } from 'lucide-react';
 
 const CalendarLegend = () => {
   return (
-    <div className="space-y-2 text-xs">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
       {/* Menstruação */}
       <div>
-        <h4 className="font-medium mb-1 text-gray-500 text-[10px] uppercase tracking-wide">Menstruação</h4>
+        <h4 className="font-medium mb-2 text-gray-500 text-[10px] uppercase tracking-wide">Menstruação</h4>
         <div className="space-y-1">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 bg-red-500 rounded"></div>
@@ -22,7 +22,7 @@ const CalendarLegend = () => {
 
       {/* Sensação */}
       <div>
-        <h4 className="font-medium mb-1 text-gray-500 text-[10px] uppercase tracking-wide">Sensação</h4>
+        <h4 className="font-medium mb-2 text-gray-500 text-[10px] uppercase tracking-wide">Sensação</h4>
         <div className="space-y-1">
           <div className="flex items-center gap-1.5">
             <Circle className="h-2 w-2 text-yellow-600" />
@@ -45,7 +45,7 @@ const CalendarLegend = () => {
 
       {/* Muco */}
       <div>
-        <h4 className="font-medium mb-1 text-gray-500 text-[10px] uppercase tracking-wide">Muco</h4>
+        <h4 className="font-medium mb-2 text-gray-500 text-[10px] uppercase tracking-wide">Muco</h4>
         <div className="space-y-1">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-1 bg-green-200 rounded"></div>
@@ -76,7 +76,7 @@ const CalendarLegend = () => {
 
       {/* Relação Sexual */}
       <div>
-        <h4 className="font-medium mb-1 text-gray-500 text-[10px] uppercase tracking-wide">Relação</h4>
+        <h4 className="font-medium mb-2 text-gray-500 text-[10px] uppercase tracking-wide">Relação</h4>
         <div className="flex items-center gap-1.5">
           <Heart className="h-2 w-2 text-pink-500 fill-current" />
           <span className="text-[10px] text-gray-600">Relação sexual</span>

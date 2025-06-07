@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -144,22 +145,21 @@ const Calendar = () => {
           />
         </div>
 
-        {/* Calendar and Legend - Maximized layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-6 gap-3">
-          <div className="xl:col-span-5">
-            <CalendarGrid
-              days={days}
-              currentDate={currentDate}
-              onDayClick={handleDayClick}
-              highlightFilter={highlightFilter}
-            />
+        {/* Legenda acima do gráfico */}
+        <div className="mb-3">
+          <div className="bg-white rounded-lg shadow-sm p-3">
+            <CalendarLegend />
           </div>
-          <div className="xl:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-2 opacity-80 hover:opacity-100 transition-opacity">
-              <h3 className="text-xs font-medium text-gray-500 mb-2">Legenda</h3>
-              <CalendarLegend />
-            </div>
-          </div>
+        </div>
+
+        {/* Calendar ocupando toda a largura */}
+        <div className="w-full">
+          <CalendarGrid
+            days={days}
+            currentDate={currentDate}
+            onDayClick={handleDayClick}
+            highlightFilter={highlightFilter}
+          />
         </div>
 
         {/* Modal */}

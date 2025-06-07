@@ -17,14 +17,20 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
   const monthEnd = endOfMonth(month);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   
-  const { data: monthData = [] } = useQuery({
+  const { data: monthData = [], isLoading } = useQuery({
     queryKey: ['billing-month', month.getFullYear(), month.getMonth()],
     queryFn: () => getBillingDataForMonth(month.getFullYear(), month.getMonth()),
   });
 
+  console.log(`ComparisonCalendar for ${format(month, 'yyyy-MM')}: ${monthData.length} records loaded`);
+
   const getBillingDataForDay = (day: Date) => {
     const dayString = format(day, 'yyyy-MM-dd');
-    return monthData.find(data => data.date === dayString);
+    const data = monthData.find(data => data.date === dayString);
+    if (data) {
+      console.log(`Data found for ${dayString}:`, data);
+    }
+    return data;
   };
 
   const getMenstruationColor = (billingData: any) => {
@@ -148,6 +154,14 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
   };
 
   const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden h-full flex items-center justify-center">
+        <div className="text-gray-500">Carregando...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden h-full">

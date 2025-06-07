@@ -34,8 +34,11 @@ export const getBillingData = async (date: string): Promise<BillingData | null> 
 
 export const getBillingDataForMonth = async (year: number, month: number): Promise<BillingData[]> => {
   try {
+    // Ajustar para usar o formato correto de data
     const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
     const endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
+
+    console.log(`Fetching data for month: ${year}-${month + 1} (${startDate} to ${endDate})`);
 
     const { data, error } = await supabase
       .from('billings_data')
@@ -45,9 +48,11 @@ export const getBillingDataForMonth = async (year: number, month: number): Promi
       .order('date');
 
     if (error) {
+      console.error('Supabase error:', error);
       throw error;
     }
 
+    console.log(`Found ${data?.length || 0} records for the month`);
     return data || [];
   } catch (error) {
     console.error('Error fetching month billing data:', error);

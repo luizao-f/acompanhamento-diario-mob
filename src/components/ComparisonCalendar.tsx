@@ -205,7 +205,7 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden h-full">
+    <div className="bg-white rounded-lg shadow-sm overflow-visible min-h-full">
       {/* Month Header */}
       <div className="bg-primary text-primary-foreground p-3 text-center">
         <h3 className="text-base font-semibold">
@@ -305,11 +305,19 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
             );
           }
 
-          // Índices de início/fim da barra na semana
+          // Índices de início/fim da barra na semana (corrigido para cobrir toda a linha se necessário)
           const barColStart = week.findIndex(d => d.getTime() === segmentStart.getTime());
           const barColEnd = week.findIndex(d => d.getTime() === segmentEnd.getTime());
           const from = barColStart !== -1 ? barColStart : 0;
-          const to = barColEnd !== -1 ? barColEnd : 6;
+          // AJUSTE: se a barra termina no último dia do calendário, forçar até o final da grid
+          let to = barColEnd !== -1 ? barColEnd : 6;
+          if (
+            barEnd &&
+            weekIdx === weeks.length - 1 &&
+            segmentEnd.getTime() === week[week.length - 1].getTime()
+          ) {
+            to = 6;
+          }
 
           return (
             <div key={weekIdx} className="relative grid grid-cols-7">

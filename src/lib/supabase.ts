@@ -34,11 +34,9 @@ export const getBillingData = async (date: string): Promise<BillingData | null> 
 
 export const getBillingDataForMonth = async (year: number, month: number): Promise<BillingData[]> => {
   try {
-    // Corrigir o cálculo do mês para usar o índice correto (month é 0-based)
     const actualMonth = month + 1;
     const startDate = `${year}-${String(actualMonth).padStart(2, '0')}-01`;
     
-    // Calcular o último dia do mês corretamente
     const nextMonth = actualMonth === 12 ? 1 : actualMonth + 1;
     const nextYear = actualMonth === 12 ? year + 1 : year;
     const lastDay = new Date(nextYear, nextMonth - 1, 0).getDate();
@@ -81,5 +79,35 @@ export const saveBillingData = async (data: Omit<BillingData, 'id' | 'created_at
   }
 };
 
-// Export the supabase client for direct use if needed
+// Função para salvar correção manual
+export const saveMenstruationCorrection = async (
+  date: string, 
+  originalPrediction: boolean, 
+  actualResult: boolean
+) => {
+  try {
+    const correctionType = originalPrediction && !actualResult 
+      ? 'false_positive' 
+      : !originalPrediction && actualResult 
+        ? 'false_negative' 
+        : null;
+
+    if (!correctionType) return;
+
+    const { error } = await supabase
+      .from('menstruation_corrections')
+      .upsert({
+        correction_date: date,
+        correction_type: correctionType,
+        original_prediction: originalPrediction,
+        actual_result: actualResult
+      }, { onConflict: 'user_id,correction_date' });
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error saving menstruation correction:', error);
+    throw error;
+  }
+};
+
 export { supabase };

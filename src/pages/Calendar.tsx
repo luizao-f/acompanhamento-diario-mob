@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -9,10 +10,13 @@ import CalendarGrid from '@/components/CalendarGrid';
 import DayFormModal from '@/components/DayFormModal';
 import CalendarLegend from '@/components/CalendarLegend';
 import FilterButtons from '@/components/FilterButtons';
+import PredictionSettings from '@/components/PredictionSettings';
+import MonthInsights from '@/components/MonthInsights';
 import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
+import { getPredictionsForMonth } from '@/lib/menstruationPrediction';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -79,6 +83,12 @@ const Calendar = () => {
   const { data: nextBillingData = [] } = useQuery({
     queryKey: ['billing-month', nextYear, nextMonth],
     queryFn: () => getBillingDataForMonth(nextYear, nextMonth),
+  });
+
+  // Buscar predições para o mês atual
+  const { data: predictions = [] } = useQuery({
+    queryKey: ['predictions', currentYear, currentMonth],
+    queryFn: () => getPredictionsForMonth(currentYear, currentMonth),
   });
 
   // Junta todos os dados
@@ -161,6 +171,11 @@ const Calendar = () => {
           </div>
         </div>
 
+        {/* Configurações de Predição */}
+        <div className="mb-3">
+          <PredictionSettings />
+        </div>
+
         {/* Filter Buttons */}
         <div className="mb-3">
           <FilterButtons 
@@ -176,6 +191,11 @@ const Calendar = () => {
           </div>
         </div>
 
+        {/* Insights do Mês */}
+        <div className="mb-3">
+          <MonthInsights year={currentYear} month={currentMonth} />
+        </div>
+
         {/* Calendar ocupando toda a largura */}
         <div className="w-full">
           <CalendarGrid
@@ -183,7 +203,8 @@ const Calendar = () => {
             currentDate={currentDate}
             onDayClick={handleDayClick}
             highlightFilter={highlightFilter}
-            billingData={billingData} // <- passa todos os dados
+            billingData={billingData}
+            predictions={predictions}
           />
         </div>
 

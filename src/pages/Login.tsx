@@ -37,7 +37,7 @@ const Login = () => {
   return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-sky-500">Método Billings</CardTitle>
+          <CardTitle className="text-2xl font-bold text-sky-500">Método Billings - Edi</CardTitle>
           <CardDescription>Acesse sua conta para continuar</CardDescription>
         </CardHeader>
         <CardContent>

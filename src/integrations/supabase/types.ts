@@ -84,6 +84,99 @@ export type Database = {
         }
         Relationships: []
       }
+      menstruation_corrections: {
+        Row: {
+          actual_result: boolean
+          correction_date: string
+          correction_type: string
+          created_at: string | null
+          id: string
+          original_prediction: boolean
+          user_id: string | null
+        }
+        Insert: {
+          actual_result: boolean
+          correction_date: string
+          correction_type: string
+          created_at?: string | null
+          id?: string
+          original_prediction: boolean
+          user_id?: string | null
+        }
+        Update: {
+          actual_result?: boolean
+          correction_date?: string
+          correction_type?: string
+          created_at?: string | null
+          id?: string
+          original_prediction?: boolean
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      menstruation_predictions: {
+        Row: {
+          based_on_months: number | null
+          confidence_score: number | null
+          created_at: string | null
+          cycle_average: number | null
+          duration_average: number | null
+          id: string
+          predicted_date: string
+          prediction_type: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          based_on_months?: number | null
+          confidence_score?: number | null
+          created_at?: string | null
+          cycle_average?: number | null
+          duration_average?: number | null
+          id?: string
+          predicted_date: string
+          prediction_type: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          based_on_months?: number | null
+          confidence_score?: number | null
+          created_at?: string | null
+          cycle_average?: number | null
+          duration_average?: number | null
+          id?: string
+          predicted_date?: string
+          prediction_type?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      prediction_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          lookback_months: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lookback_months?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lookback_months?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

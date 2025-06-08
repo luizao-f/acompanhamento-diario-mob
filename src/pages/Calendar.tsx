@@ -94,6 +94,12 @@ const Calendar = () => {
             <h1 className="text-2xl font-bold text-primary">Método Billings</h1>
           </div>
           <div className="flex items-center gap-4">
+            <Link to="/menstrual-cycle">
+              <Button variant="outline" size="sm">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Ciclo Menstrual
+              </Button>
+            </Link>
             <Link to="/comparison">
               <Button variant="outline" size="sm">
                 <BarChart3 className="h-4 w-4 mr-2" />

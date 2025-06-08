@@ -31,6 +31,11 @@ const App = () => (
                 <Comparison />
               </ProtectedRoute>
             } />
+            <Route path="/menstrual-cycle" element={
+              <ProtectedRoute>
+                <MenstrualCycle />
+              </ProtectedRoute>
+            } />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

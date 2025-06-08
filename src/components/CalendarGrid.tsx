@@ -3,9 +3,8 @@ import { isSameMonth, isToday, startOfWeek, endOfWeek, addDays, isWithinInterval
 import { ptBR } from 'date-fns/locale';
 import DayCell from './DayCell';
 
-// Tipo para os dados diários
 interface BillingData {
-  date: string; // formato 'yyyy-MM-dd'
+  date: string;
   menstruacao?: string;
   sensacao?: string[];
   muco?: string[];
@@ -16,16 +15,16 @@ interface CalendarGridProps {
   currentDate: Date;
   onDayClick: (day: Date) => void;
   highlightFilter?: string | null;
-  billingData: BillingData[]; // NOVO: dados diários do mês
+  billingData: BillingData[];
 }
 
-// Função: encontra o primeiro dia de menstruação (forte ou manchas)
+// Encontra o primeiro dia de menstruação (forte ou manchas)
 function findFirstMenstruationDay(billingData: BillingData[]): string | null {
   const item = billingData.find(d => d.menstruacao === 'forte' || d.menstruacao === 'manchas');
   return item?.date ?? null;
 }
 
-// Função: encontra o dia do ápice (sensação escorregadia + muco elastico/transparente)
+// Encontra o dia do ápice (escorregadia + elastico/transparente)
 function findApexDay(billingData: BillingData[]): string | null {
   const item = billingData.find(d =>
     d.sensacao?.includes('escorregadia') &&
@@ -34,7 +33,7 @@ function findApexDay(billingData: BillingData[]): string | null {
   return item?.date ?? null;
 }
 
-// Função: retorna intervalo de datas para a barra
+// Retorna intervalo de datas para a barra
 function getBarInterval(billingData: BillingData[]): [Date | null, Date | null] {
   const start = findFirstMenstruationDay(billingData);
   const apex = findApexDay(billingData);
@@ -45,23 +44,25 @@ function getBarInterval(billingData: BillingData[]): [Date | null, Date | null] 
   return [startDate, endDate];
 }
 
-const CalendarGrid: React.FC<CalendarGridProps> = ({ days, currentDate, onDayClick, highlightFilter, billingData }) => {
+const CalendarGrid: React.FC<CalendarGridProps> = ({
+  days, currentDate, onDayClick, highlightFilter, billingData
+}) => {
   const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   const monthStart = days[0];
   const monthEnd = days[days.length - 1];
   const calendarStart = startOfWeek(monthStart, { locale: ptBR });
   const calendarEnd = endOfWeek(monthEnd, { locale: ptBR });
 
-  // Lista de todos os dias exibidos no grid (inclui dias do mês anterior/próximo)
+  // Todos os dias exibidos no grid
   const totalDays: Date[] = [];
   for (let d = calendarStart; d <= calendarEnd; d = addDays(d, 1)) {
     totalDays.push(d);
   }
 
-  // Calcula o intervalo da barra
+  // Calcula o intervalo da barra global (pode começar/terminar fora do mês)
   const [barStart, barEnd] = getBarInterval(billingData);
 
-  // Divide os dias em semanas
+  // Divide em semanas
   const weeks: Date[][] = [];
   for (let i = 0; i < totalDays.length; i += 7) {
     weeks.push(totalDays.slice(i, i + 7));
@@ -69,7 +70,6 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ days, currentDate, onDayCli
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-visible">
-      {/* Header dos dias da semana */}
       <div className="grid grid-cols-7 bg-primary text-primary-foreground">
         {weekdays.map((day) => (
           <div key={day} className="p-3 text-center font-semibold text-sm">
@@ -77,13 +77,18 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ days, currentDate, onDayCli
           </div>
         ))}
       </div>
-      {/* Renderiza semana por semana, desenhando a barra na linha certa */}
       <div>
         {weeks.map((week, weekIdx) => {
-          // A semana tem barra se algum dia da semana está dentro do intervalo calculado
-          const weekHasBar = barStart && barEnd && week.some(day =>
-            isWithinInterval(day, { start: barStart, end: barEnd })
-          );
+          // A semana tem barra se qualquer parte dela estiver dentro do intervalo
+          const weekStart = week[0];
+          const weekEnd = week[week.length - 1];
+          const weekHasBar = barStart && barEnd &&
+            (
+              isWithinInterval(weekStart, { start: barStart, end: barEnd }) ||
+              isWithinInterval(weekEnd, { start: barStart, end: barEnd }) ||
+              (barStart < weekStart && barEnd > weekEnd)
+            );
+
           return (
             <div key={weekIdx} className="relative grid grid-cols-7">
               {weekHasBar && (

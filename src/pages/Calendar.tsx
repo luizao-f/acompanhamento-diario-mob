@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,7 +11,6 @@ import CalendarLegend from '@/components/CalendarLegend';
 import FilterButtons from '@/components/FilterButtons';
 import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
 
-// IMPORTAÇÃO ADICIONADA
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
 
@@ -63,11 +62,27 @@ const Calendar = () => {
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
-  // BUSCA OS DADOS DO MÊS E PASSA PARA O CALENDÁRIO
-  const { data: billingData = [] } = useQuery({
+  // Buscar dados do mês anterior, atual e seguinte
+  const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+  const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+  const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+  const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+
+  const { data: prevBillingData = [] } = useQuery({
+    queryKey: ['billing-month', prevYear, prevMonth],
+    queryFn: () => getBillingDataForMonth(prevYear, prevMonth),
+  });
+  const { data: currentBillingData = [] } = useQuery({
     queryKey: ['billing-month', currentYear, currentMonth],
     queryFn: () => getBillingDataForMonth(currentYear, currentMonth),
   });
+  const { data: nextBillingData = [] } = useQuery({
+    queryKey: ['billing-month', nextYear, nextMonth],
+    queryFn: () => getBillingDataForMonth(nextYear, nextMonth),
+  });
+
+  // Junta todos os dados
+  const billingData = [...prevBillingData, ...currentBillingData, ...nextBillingData];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
@@ -168,7 +183,7 @@ const Calendar = () => {
             currentDate={currentDate}
             onDayClick={handleDayClick}
             highlightFilter={highlightFilter}
-            billingData={billingData} // <- NOVO: passa os dados do mês aqui
+            billingData={billingData} // <- passa todos os dados
           />
         </div>
 

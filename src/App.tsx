@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Calendar from "./pages/Calendar";
 import Comparison from "./pages/Comparison";
+import MenstrualCycle from "./pages/MenstrualCycle";
 
 const queryClient = new QueryClient();
 

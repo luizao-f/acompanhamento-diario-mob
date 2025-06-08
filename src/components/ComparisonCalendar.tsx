@@ -1,5 +1,16 @@
 import React from 'react';
-import { format, startOfMonth, endOfMonth, isSameMonth, startOfWeek, endOfWeek, addDays, parseISO, isAfter, isBefore } from 'date-fns';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  isSameMonth,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  parseISO,
+  isAfter,
+  isBefore
+} from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
@@ -19,17 +30,18 @@ interface BillingData {
   [key: string]: any;
 }
 
-// ... findFirstMenstruationDay, findApexDay, getBarInterval (iguais ao anterior)
-
 function findFirstMenstruationDay(billingData: BillingData[]): string | null {
-  const item = billingData.find(d => d.menstruacao === 'forte' || d.menstruacao === 'manchas');
+  const item = billingData.find(
+    (d) => d.menstruacao === 'forte' || d.menstruacao === 'manchas'
+  );
   return item?.date ?? null;
 }
 
 function findApexDay(billingData: BillingData[]): string | null {
-  const item = billingData.find(d =>
-    d.sensacao?.includes('escorregadia') &&
-    d.muco?.some((m: string) => m === 'elastico' || m === 'transparente')
+  const item = billingData.find(
+    (d) =>
+      d.sensacao?.includes('escorregadia') &&
+      d.muco?.some((m: string) => m === 'elastico' || m === 'transparente')
   );
   return item?.date ?? null;
 }
@@ -44,30 +56,39 @@ function getBarInterval(billingData: BillingData[]): [Date | null, Date | null] 
   return [startDate, endDate];
 }
 
-const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highlightFilter }) => {
+const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
+  month,
+  highlightFilter
+}) => {
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
 
   // Busca dados do mês anterior, atual e seguinte
   const prevMonthNum = monthStart.getMonth() === 0 ? 11 : monthStart.getMonth() - 1;
   const nextMonthNum = monthStart.getMonth() === 11 ? 0 : monthStart.getMonth() + 1;
-  const prevYear = monthStart.getMonth() === 0 ? monthStart.getFullYear() - 1 : monthStart.getFullYear();
-  const nextYear = monthStart.getMonth() === 11 ? monthStart.getFullYear() + 1 : monthStart.getFullYear();
+  const prevYear =
+    monthStart.getMonth() === 0 ? monthStart.getFullYear() - 1 : monthStart.getFullYear();
+  const nextYear =
+    monthStart.getMonth() === 11 ? monthStart.getFullYear() + 1 : monthStart.getFullYear();
 
   const { data: prevBillingData = [] } = useQuery({
     queryKey: ['billing-month', prevYear, prevMonthNum],
-    queryFn: () => getBillingDataForMonth(prevYear, prevMonthNum),
+    queryFn: () => getBillingDataForMonth(prevYear, prevMonthNum)
   });
   const { data: currentBillingData = [] } = useQuery({
     queryKey: ['billing-month', monthStart.getFullYear(), monthStart.getMonth()],
-    queryFn: () => getBillingDataForMonth(monthStart.getFullYear(), monthStart.getMonth()),
+    queryFn: () => getBillingDataForMonth(monthStart.getFullYear(), monthStart.getMonth())
   });
   const { data: nextBillingData = [] } = useQuery({
     queryKey: ['billing-month', nextYear, nextMonthNum],
-    queryFn: () => getBillingDataForMonth(nextYear, nextMonthNum),
+    queryFn: () => getBillingDataForMonth(nextYear, nextMonthNum)
   });
 
-  const billingData: BillingData[] = [...prevBillingData, ...currentBillingData, ...nextBillingData];
+  const billingData: BillingData[] = [
+    ...prevBillingData,
+    ...currentBillingData,
+    ...nextBillingData
+  ];
 
   // Gera todos os dias do grid, incluindo início/fim de semana
   const calendarStart = startOfWeek(monthStart, { locale: ptBR });
@@ -90,7 +111,7 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
 
   const getBillingDataForDay = (day: Date) => {
     const dayString = format(day, 'yyyy-MM-dd');
-    const data = billingData.find(data => data.date === dayString);
+    const data = billingData.find((data) => data.date === dayString);
     return data;
   };
 
@@ -124,56 +145,56 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
 
     if (billingData.sensacao?.includes('seca')) {
       icons.push(
-        <Circle 
-          key="seca" 
+        <Circle
+          key="seca"
           className={cn(
-            "h-2 w-2 text-yellow-600",
-            highlighted && highlightFilter === 'sensacao' && "ring-1 ring-yellow-400 rounded-full"
-          )} 
+            'h-2 w-2 text-yellow-600',
+            highlighted && highlightFilter === 'sensacao' && 'ring-1 ring-yellow-400 rounded-full'
+          )}
         />
       );
     }
     if (billingData.sensacao?.includes('umida')) {
       icons.push(
-        <Droplets 
-          key="umida" 
+        <Droplets
+          key="umida"
           className={cn(
-            "h-2 w-2 text-blue-400",
-            highlighted && highlightFilter === 'sensacao' && "ring-1 ring-blue-200 rounded-full"
-          )} 
+            'h-2 w-2 text-blue-400',
+            highlighted && highlightFilter === 'sensacao' && 'ring-1 ring-blue-200 rounded-full'
+          )}
         />
       );
     }
     if (billingData.sensacao?.includes('pegajosa')) {
       icons.push(
-        <Circle 
-          key="pegajosa" 
+        <Circle
+          key="pegajosa"
           className={cn(
-            "h-2 w-2 text-orange-500 fill-current",
-            highlighted && highlightFilter === 'sensacao' && "ring-1 ring-orange-300 rounded-full"
-          )} 
+            'h-2 w-2 text-orange-500 fill-current',
+            highlighted && highlightFilter === 'sensacao' && 'ring-1 ring-orange-300 rounded-full'
+          )}
         />
       );
     }
     if (billingData.sensacao?.includes('escorregadia')) {
       icons.push(
-        <Droplets 
-          key="escorregadia" 
+        <Droplets
+          key="escorregadia"
           className={cn(
-            "h-2 w-2 text-blue-600",
-            highlighted && highlightFilter === 'sensacao' && "ring-1 ring-blue-400 rounded-full"
-          )} 
+            'h-2 w-2 text-blue-600',
+            highlighted && highlightFilter === 'sensacao' && 'ring-1 ring-blue-400 rounded-full'
+          )}
         />
       );
     }
     if (billingData.relacao_sexual) {
       icons.push(
-        <Heart 
-          key="relacao" 
+        <Heart
+          key="relacao"
           className={cn(
-            "h-2 w-2 text-pink-500 fill-current",
-            highlighted && highlightFilter === 'relacao_sexual' && "ring-1 ring-pink-300 rounded-full"
-          )} 
+            'h-2 w-2 text-pink-500 fill-current',
+            highlighted && highlightFilter === 'relacao_sexual' && 'ring-1 ring-pink-300 rounded-full'
+          )}
         />
       );
     }
@@ -189,14 +210,14 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
           <div
             key={`${mucoType}-${index}`}
             className={cn(
-              "text-xs px-1 py-0.5 rounded text-center text-[10px]",
-              mucoType === 'clara_de_ovo' && "bg-green-200 text-green-800",
-              mucoType === 'transparente' && "bg-blue-200 text-blue-800",
-              mucoType === 'elastico' && "bg-purple-200 text-purple-800",
-              mucoType === 'espesso' && "bg-yellow-200 text-yellow-800",
-              mucoType === 'pegajoso' && "bg-orange-200 text-orange-800",
-              mucoType === 'branco' && "bg-gray-200 text-gray-800",
-              highlighted && highlightFilter === 'muco' && "ring-1 ring-offset-1 ring-primary"
+              'text-xs px-1 py-0.5 rounded text-center text-[10px]',
+              mucoType === 'clara_de_ovo' && 'bg-green-200 text-green-800',
+              mucoType === 'transparente' && 'bg-blue-200 text-blue-800',
+              mucoType === 'elastico' && 'bg-purple-200 text-purple-800',
+              mucoType === 'espesso' && 'bg-yellow-200 text-yellow-800',
+              mucoType === 'pegajoso' && 'bg-orange-200 text-orange-800',
+              mucoType === 'branco' && 'bg-gray-200 text-gray-800',
+              highlighted && highlightFilter === 'muco' && 'ring-1 ring-offset-1 ring-primary'
             )}
           >
             {mucoType?.replace('_', ' ').substring(0, 3)}
@@ -207,13 +228,13 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-visible min-h-full">
+    <div className="bg-white rounded-lg shadow-sm overflow-visible min-h-full w-full">
       {/* Month Header */}
-      <div className="bg-primary text-primary-foreground w-full p-3 flex flex-col gap-1 sm:flex-row sm:justify-between sm:items-center">
-        <h3 className="text-base font-semibold break-words text-center sm:text-left w-full sm:w-auto">
+      <div className="bg-primary text-primary-foreground w-full p-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 min-w-0">
+        <h3 className="text-base font-semibold break-words text-center sm:text-left w-full sm:w-auto min-w-0">
           {format(month, 'MMMM yyyy', { locale: ptBR })}
         </h3>
-        <p className="text-xs opacity-80 mt-0 w-full sm:w-auto text-center sm:text-right">
+        <p className="text-xs opacity-80 mt-0 w-full sm:w-auto text-center sm:text-right min-w-0">
           {currentBillingData.length} registros encontrados
         </p>
       </div>
@@ -240,17 +261,19 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
                     <div
                       key={day.toISOString()}
                       className={cn(
-                        "min-h-[80px] p-1.5 border border-gray-100 relative",
-                        !isSameMonth(day, month) && "text-gray-400 bg-gray-50",
+                        'min-h-[80px] p-1.5 border border-gray-100 relative',
+                        !isSameMonth(day, month) && 'text-gray-400 bg-gray-50',
                         getMenstruationColor(billingData),
-                        highlighted && "ring-2 ring-primary ring-inset"
+                        highlighted && 'ring-2 ring-primary ring-inset'
                       )}
                     >
                       <div className="flex flex-col h-full">
-                        <div className={cn(
-                          "text-xs font-medium mb-1 text-center",
-                          getMenstruationColor(billingData) && "text-white"
-                        )}>
+                        <div
+                          className={cn(
+                            'text-xs font-medium mb-1 text-center',
+                            getMenstruationColor(billingData) && 'text-white'
+                          )}
+                        >
                           {format(day, 'd')}
                         </div>
                         <div className="flex flex-wrap gap-0.5 justify-center flex-1">
@@ -282,17 +305,19 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
                     <div
                       key={day.toISOString()}
                       className={cn(
-                        "min-h-[80px] p-1.5 border border-gray-100 relative",
-                        !isSameMonth(day, month) && "text-gray-400 bg-gray-50",
+                        'min-h-[80px] p-1.5 border border-gray-100 relative',
+                        !isSameMonth(day, month) && 'text-gray-400 bg-gray-50',
                         getMenstruationColor(billingData),
-                        highlighted && "ring-2 ring-primary ring-inset"
+                        highlighted && 'ring-2 ring-primary ring-inset'
                       )}
                     >
                       <div className="flex flex-col h-full">
-                        <div className={cn(
-                          "text-xs font-medium mb-1 text-center",
-                          getMenstruationColor(billingData) && "text-white"
-                        )}>
+                        <div
+                          className={cn(
+                            'text-xs font-medium mb-1 text-center',
+                            getMenstruationColor(billingData) && 'text-white'
+                          )}
+                        >
                           {format(day, 'd')}
                         </div>
                         <div className="flex flex-wrap gap-0.5 justify-center flex-1">
@@ -308,8 +333,8 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
           }
 
           // Índices de início/fim da barra na semana (corrigido para cobrir toda a linha se necessário)
-          const barColStart = week.findIndex(d => d.getTime() === segmentStart.getTime());
-          const barColEnd = week.findIndex(d => d.getTime() === segmentEnd.getTime());
+          const barColStart = week.findIndex((d) => d.getTime() === segmentStart.getTime());
+          const barColEnd = week.findIndex((d) => d.getTime() === segmentEnd.getTime());
           const from = barColStart !== -1 ? barColStart : 0;
           let to = barColEnd !== -1 ? barColEnd : 6;
           if (
@@ -337,17 +362,19 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
                   <div
                     key={day.toISOString()}
                     className={cn(
-                      "min-h-[80px] p-1.5 border border-gray-100 relative",
-                      !isSameMonth(day, month) && "text-gray-400 bg-gray-50",
+                      'min-h-[80px] p-1.5 border border-gray-100 relative',
+                      !isSameMonth(day, month) && 'text-gray-400 bg-gray-50',
                       getMenstruationColor(billingData),
-                      highlighted && "ring-2 ring-primary ring-inset"
+                      highlighted && 'ring-2 ring-primary ring-inset'
                     )}
                   >
                     <div className="flex flex-col h-full">
-                      <div className={cn(
-                        "text-xs font-medium mb-1 text-center",
-                        getMenstruationColor(billingData) && "text-white"
-                      )}>
+                      <div
+                        className={cn(
+                          'text-xs font-medium mb-1 text-center',
+                          getMenstruationColor(billingData) && 'text-white'
+                        )}
+                      >
                         {format(day, 'd')}
                       </div>
                       <div className="flex flex-wrap gap-0.5 justify-center flex-1">

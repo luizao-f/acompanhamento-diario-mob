@@ -7,7 +7,20 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
 const ForecastPage = () => {
-  const { history, loading } = useMenstruationHistory();
+  let history = [];
+  let loading = false;
+  let error = null;
+
+  // Try/catch para debug se o hook falhar
+  try {
+    const hookResult = useMenstruationHistory();
+    history = hookResult.history;
+    loading = hookResult.loading;
+    error = hookResult.error || null;
+  } catch (e) {
+    error = e;
+  }
+
   const { logout } = useAuth();
 
   return (
@@ -40,7 +53,9 @@ const ForecastPage = () => {
         </div>
         {/* Conteúdo principal */}
         <div className="bg-white rounded-lg shadow-sm p-3">
-          {loading ? (
+          {error ? (
+            <div style={{color: "red"}}>Erro: {error.message || String(error)}</div>
+          ) : loading ? (
             <div>Carregando...</div>
           ) : (
             <ForecastCalendar history={history} />

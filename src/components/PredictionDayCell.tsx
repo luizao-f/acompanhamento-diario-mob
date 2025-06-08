@@ -1,9 +1,10 @@
-
+// src/components/PredictionDayCell.tsx
 import React from 'react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { BillingData } from '@/lib/supabase';
-import { PredictionData, CorrectionData } from '@/lib/menstruationPrediction';
+import { PredictionData } from '@/lib/menstruationPrediction';
+import { PredictionComparison } from '@/lib/predictionTracking';
 import { Heart, Droplets } from 'lucide-react';
 
 interface PredictionDayCellProps {
@@ -12,7 +13,7 @@ interface PredictionDayCellProps {
   isToday: boolean;
   billingData?: BillingData;
   predictions: PredictionData[];
-  correction?: CorrectionData;
+  comparison?: PredictionComparison;
   onClick: () => void;
 }
 
@@ -22,7 +23,7 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
   isToday,
   billingData,
   predictions,
-  correction,
+  comparison,
   onClick
 }) => {
   const hasMenstruation = billingData?.menstruacao && billingData.menstruacao !== 'sem_sangramento';
@@ -37,8 +38,8 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
       return 'bg-red-500 text-white';
     }
     
-    // Se tem predição de menstruação mas não tem dados reais
-    if (hasPredictedMenstruation && !hasMenstruation) {
+    // Se tem predição de menstruação mas não tem dados reais ainda
+    if (hasPredictedMenstruation && !billingData) {
       return 'bg-red-400 text-white';
     }
     
@@ -55,22 +56,24 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
     return '';
   };
 
-  // Determinar cor da barra inferior baseado nas correções
+  // Determinar cor da barra inferior baseado na comparação
   const getBarColor = () => {
-    if (correction) {
-      // Falso positivo: sistema previu menstruação mas não aconteceu
-      if (correction.type === 'false_positive') {
-        return 'bg-orange-500';
+    if (!comparison) {
+      // Se ainda não há dados reais, mas tem predição
+      if (hasPredictedMenstruation && !billingData) {
+        return 'bg-red-600';
       }
-      // Falso negativo: sistema não previu mas aconteceu (atraso/antecipação)
-      if (correction.type === 'false_negative') {
-        return 'bg-black';
-      }
+      return '';
     }
     
-    // Barra vermelha forte para predições de menstruação
-    if (hasPredictedMenstruation && !hasMenstruation) {
-      return 'bg-red-600';
+    // Falso positivo: sistema previu menstruação mas não aconteceu (atraso)
+    if (comparison.type === 'false_positive') {
+      return 'bg-orange-500';
+    }
+    
+    // Falso negativo: sistema não previu mas aconteceu (antecipação)
+    if (comparison.type === 'false_negative') {
+      return 'bg-black';
     }
     
     return '';
@@ -115,6 +118,16 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
         )}
         {hasFertileDays && !hasOvulation && (
           <div className="text-xs text-green-700">Fértil</div>
+        )}
+        
+        {/* Mostrar tipo de erro se houver comparação */}
+        {comparison && (comparison.type === 'false_positive' || comparison.type === 'false_negative') && (
+          <div className="text-xs mt-1">
+            {comparison.type === 'false_positive' ? 
+              <span className="text-orange-600 font-medium">Atraso</span> : 
+              <span className="text-black font-medium">Antecipação</span>
+            }
+          </div>
         )}
       </div>
 

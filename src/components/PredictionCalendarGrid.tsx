@@ -1,4 +1,4 @@
-
+// src/components/PredictionCalendarGrid.tsx
 import React from 'react';
 import { 
   format, 
@@ -13,13 +13,14 @@ import {
 import { ptBR } from 'date-fns/locale';
 import PredictionDayCell from './PredictionDayCell';
 import { BillingData } from '@/lib/supabase';
-import { PredictionData, CorrectionData } from '@/lib/menstruationPrediction';
+import { PredictionData } from '@/lib/menstruationPrediction';
+import { PredictionComparison } from '@/lib/predictionTracking';
 
 interface PredictionCalendarGridProps {
   currentDate: Date;
   billingData: BillingData[];
   predictions: PredictionData[];
-  corrections: CorrectionData[];
+  comparisons: PredictionComparison[];
   onDayClick: (day: Date, hasData: boolean, isPrediction: boolean) => void;
 }
 
@@ -27,7 +28,7 @@ const PredictionCalendarGrid: React.FC<PredictionCalendarGridProps> = ({
   currentDate,
   billingData,
   predictions,
-  corrections,
+  comparisons,
   onDayClick
 }) => {
   const monthStart = startOfMonth(currentDate);
@@ -37,6 +38,17 @@ const PredictionCalendarGrid: React.FC<PredictionCalendarGridProps> = ({
   
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
   const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  // Criar mapas para acesso rápido
+  const billingDataMap = new Map<string, BillingData>();
+  billingData.forEach(data => {
+    billingDataMap.set(data.date, data);
+  });
+
+  const comparisonMap = new Map<string, PredictionComparison>();
+  comparisons.forEach(comp => {
+    comparisonMap.set(comp.date, comp);
+  });
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -53,9 +65,9 @@ const PredictionCalendarGrid: React.FC<PredictionCalendarGridProps> = ({
       <div className="grid grid-cols-7">
         {days.map((day) => {
           const dayString = format(day, 'yyyy-MM-dd');
-          const dayData = billingData.find(data => data.date === dayString);
+          const dayData = billingDataMap.get(dayString);
           const dayPredictions = predictions.filter(pred => pred.date === dayString);
-          const dayCorrection = corrections.find(corr => corr.date === dayString);
+          const dayComparison = comparisonMap.get(dayString);
           
           return (
             <PredictionDayCell
@@ -65,7 +77,7 @@ const PredictionCalendarGrid: React.FC<PredictionCalendarGridProps> = ({
               isToday={isToday(day)}
               billingData={dayData}
               predictions={dayPredictions}
-              correction={dayCorrection}
+              comparison={dayComparison}
               onClick={() => onDayClick(day, !!dayData, dayPredictions.length > 0)}
             />
           );

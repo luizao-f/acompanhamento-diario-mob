@@ -8,8 +8,6 @@ import {
   endOfWeek,
   addDays,
   parseISO,
-  isAfter,
-  isBefore
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useQuery } from '@tanstack/react-query';
@@ -32,8 +30,8 @@ interface BillingData {
   [key: string]: any;
 }
 
-// Função para extrair todos os ciclos (menstruação -> ápice)
-function getCycles(billingData: BillingData[]): Array<{ start: Date; apex: Date }> {
+// Função para extrair todos os ciclos (menstruação -> ápice+3)
+function getCycles(billingData: BillingData[]): Array<{ start: Date; end: Date }> {
   const sorted = [...billingData].sort((a, b) => a.date.localeCompare(b.date));
   const menstruacoes = sorted.filter(
     (d) => d.menstruacao === 'forte' || d.menstruacao === 'manchas'
@@ -56,11 +54,12 @@ function getCycles(billingData: BillingData[]): Array<{ start: Date; apex: Date 
     }
     if (apexIdx < apices.length) {
       const apexDate = parseISO(apices[apexIdx].date);
+      const barEnd = addDays(apexDate, 3); // 3 dias depois do ápice
       if (
         i + 1 === menstruacoes.length ||
         apexDate < parseISO(menstruacoes[i + 1].date)
       ) {
-        cycles.push({ start: mDate, apex: apexDate });
+        cycles.push({ start: mDate, end: barEnd });
         apexIdx++;
       }
     }
@@ -320,14 +319,14 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
         {weeks.map((week, weekIdx) => {
           // Para cada ciclo, desenhe a barra se ela intersecta a semana
           const bars = cycles
-            .map(({ start, apex }) => {
+            .map(({ start, end }) => {
               const weekStart = week[0];
               const weekEnd = week[6];
-              if (apex < weekStart || start > weekEnd) return null;
+              if (end < weekStart || start > weekEnd) return null;
 
               // Cálculo de índices na semana
               const fromDate = start < weekStart ? weekStart : start;
-              const toDate = apex > weekEnd ? weekEnd : apex;
+              const toDate = end > weekEnd ? weekEnd : end;
               const fromIdx = week.findIndex(
                 (d) => d.getTime() === fromDate.getTime()
               );
@@ -336,7 +335,7 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
               );
               return (
                 <div
-                  key={start.toISOString() + apex.toISOString()}
+                  key={start.toISOString() + end.toISOString()}
                   className="absolute top-1/2 h-2 bg-red-400 opacity-40 rounded-full z-0"
                   style={{
                     left: `${((fromIdx !== -1 ? fromIdx : 0) / 7) * 100}%`,

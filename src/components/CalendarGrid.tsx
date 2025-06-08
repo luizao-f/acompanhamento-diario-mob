@@ -1,8 +1,6 @@
-
 import React from 'react';
-import { format, isSameMonth, isToday } from 'date-fns';
+import { startOfWeek, endOfWeek, addDays, isSameMonth, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
 import DayCell from './DayCell';
 
 interface CalendarGridProps {
@@ -14,6 +12,17 @@ interface CalendarGridProps {
 
 const CalendarGrid: React.FC<CalendarGridProps> = ({ days, currentDate, onDayClick, highlightFilter }) => {
   const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  // Preenche o grid para alinhar corretamente o 1º dia do mês
+  const monthStart = days[0];
+  const monthEnd = days[days.length - 1];
+  const calendarStart = startOfWeek(monthStart, { locale: ptBR });
+  const calendarEnd = endOfWeek(monthEnd, { locale: ptBR });
+
+  const totalDays: Date[] = [];
+  for (let d = calendarStart; d <= calendarEnd; d = addDays(d, 1)) {
+    totalDays.push(d);
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -28,13 +37,13 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({ days, currentDate, onDayCli
 
       {/* Grid dos dias */}
       <div className="grid grid-cols-7">
-        {days.map((day) => (
+        {totalDays.map((day) => (
           <DayCell
             key={day.toISOString()}
             day={day}
             isCurrentMonth={isSameMonth(day, currentDate)}
             isToday={isToday(day)}
-            onClick={() => onDayClick(day)}
+            onClick={isSameMonth(day, currentDate) ? () => onDayClick(day) : undefined}
             highlightFilter={highlightFilter}
           />
         ))}

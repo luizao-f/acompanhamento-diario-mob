@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   format,
   startOfMonth,
@@ -27,8 +27,12 @@ interface BillingData {
   menstruacao?: string;
   sensacao?: string[];
   muco?: string[];
+  anotacao?: string;
+  relacao_sexual?: boolean;
   [key: string]: any;
 }
+
+// ... findFirstMenstruationDay, findApexDay, getBarInterval iguais
 
 function findFirstMenstruationDay(billingData: BillingData[]): string | null {
   const item = billingData.find(
@@ -60,6 +64,8 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
   month,
   highlightFilter
 }) => {
+  const [hoveredDay, setHoveredDay] = useState<string | null>(null);
+
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
 
@@ -227,6 +233,59 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
     );
   };
 
+  // Tooltip customizado
+  const renderTooltip = (day: Date, billingData: BillingData | undefined) => {
+    if (!billingData) return null;
+    const show =
+      hoveredDay === format(day, 'yyyy-MM-dd') &&
+      (billingData.anotacao ||
+        billingData.sensacao?.length ||
+        billingData.muco?.length ||
+        billingData.menstruacao ||
+        billingData.relacao_sexual);
+
+    if (!show) return null;
+
+    return (
+      <div
+        className="absolute z-20 left-1/2 top-10 -translate-x-1/2 min-w-[180px] max-w-[250px] bg-black/70 text-white text-xs rounded-lg shadow-lg p-3 pointer-events-none"
+        style={{ backdropFilter: 'blur(2px)' }}
+      >
+        <div className="font-semibold mb-1">{format(day, 'PPP', { locale: ptBR })}</div>
+        {billingData.anotacao && (
+          <div className="mb-1">
+            <span className="font-semibold">Anotação: </span>
+            <span>{billingData.anotacao}</span>
+          </div>
+        )}
+        {billingData.menstruacao && billingData.menstruacao !== 'sem_sangramento' && (
+          <div className="mb-1">
+            <span className="font-semibold">Menstruação: </span>
+            <span>{billingData.menstruacao}</span>
+          </div>
+        )}
+        {billingData.sensacao?.length > 0 && (
+          <div className="mb-1">
+            <span className="font-semibold">Sensação: </span>
+            <span>{billingData.sensacao.join(', ')}</span>
+          </div>
+        )}
+        {billingData.muco?.length > 0 && (
+          <div className="mb-1">
+            <span className="font-semibold">Muco: </span>
+            <span>{billingData.muco.join(', ')}</span>
+          </div>
+        )}
+        {billingData.relacao_sexual && (
+          <div className="mb-1">
+            <span className="font-semibold">Relação Sexual: </span>
+            <span>Sim</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-visible min-h-full w-full">
       {/* Month Header */}
@@ -257,15 +316,18 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
                 {week.map((day) => {
                   const billingData = getBillingDataForDay(day);
                   const highlighted = isHighlighted(billingData);
+                  const dayStr = format(day, 'yyyy-MM-dd');
                   return (
                     <div
                       key={day.toISOString()}
                       className={cn(
-                        'min-h-[80px] p-1.5 border border-gray-100 relative',
+                        'min-h-[80px] p-1.5 border border-gray-100 relative group',
                         !isSameMonth(day, month) && 'text-gray-400 bg-gray-50',
                         getMenstruationColor(billingData),
                         highlighted && 'ring-2 ring-primary ring-inset'
                       )}
+                      onMouseEnter={() => setHoveredDay(dayStr)}
+                      onMouseLeave={() => setHoveredDay(null)}
                     >
                       <div className="flex flex-col h-full">
                         <div
@@ -281,6 +343,7 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
                         </div>
                         {renderMucoTags(billingData)}
                       </div>
+                      {renderTooltip(day, billingData)}
                     </div>
                   );
                 })}
@@ -301,15 +364,18 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
                 {week.map((day) => {
                   const billingData = getBillingDataForDay(day);
                   const highlighted = isHighlighted(billingData);
+                  const dayStr = format(day, 'yyyy-MM-dd');
                   return (
                     <div
                       key={day.toISOString()}
                       className={cn(
-                        'min-h-[80px] p-1.5 border border-gray-100 relative',
+                        'min-h-[80px] p-1.5 border border-gray-100 relative group',
                         !isSameMonth(day, month) && 'text-gray-400 bg-gray-50',
                         getMenstruationColor(billingData),
                         highlighted && 'ring-2 ring-primary ring-inset'
                       )}
+                      onMouseEnter={() => setHoveredDay(dayStr)}
+                      onMouseLeave={() => setHoveredDay(null)}
                     >
                       <div className="flex flex-col h-full">
                         <div
@@ -325,6 +391,7 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
                         </div>
                         {renderMucoTags(billingData)}
                       </div>
+                      {renderTooltip(day, billingData)}
                     </div>
                   );
                 })}
@@ -358,15 +425,18 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
               {week.map((day) => {
                 const billingData = getBillingDataForDay(day);
                 const highlighted = isHighlighted(billingData);
+                const dayStr = format(day, 'yyyy-MM-dd');
                 return (
                   <div
                     key={day.toISOString()}
                     className={cn(
-                      'min-h-[80px] p-1.5 border border-gray-100 relative',
+                      'min-h-[80px] p-1.5 border border-gray-100 relative group',
                       !isSameMonth(day, month) && 'text-gray-400 bg-gray-50',
                       getMenstruationColor(billingData),
                       highlighted && 'ring-2 ring-primary ring-inset'
                     )}
+                    onMouseEnter={() => setHoveredDay(dayStr)}
+                    onMouseLeave={() => setHoveredDay(null)}
                   >
                     <div className="flex flex-col h-full">
                       <div
@@ -382,6 +452,7 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
                       </div>
                       {renderMucoTags(billingData)}
                     </div>
+                    {renderTooltip(day, billingData)}
                   </div>
                 );
               })}

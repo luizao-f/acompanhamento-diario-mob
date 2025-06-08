@@ -32,32 +32,40 @@ interface BillingData {
   [key: string]: any;
 }
 
-// ... findFirstMenstruationDay, findApexDay, getBarInterval iguais
-
-function findFirstMenstruationDay(billingData: BillingData[]): string | null {
-  const item = billingData.find(
+// Função para extrair todos os ciclos (menstruação -> ápice)
+function getCycles(billingData: BillingData[]): Array<{ start: Date; apex: Date }> {
+  const sorted = [...billingData].sort((a, b) => a.date.localeCompare(b.date));
+  const menstruacoes = sorted.filter(
     (d) => d.menstruacao === 'forte' || d.menstruacao === 'manchas'
   );
-  return item?.date ?? null;
-}
-
-function findApexDay(billingData: BillingData[]): string | null {
-  const item = billingData.find(
+  const apices = sorted.filter(
     (d) =>
       d.sensacao?.includes('escorregadia') &&
       d.muco?.some((m: string) => m === 'elastico' || m === 'transparente')
   );
-  return item?.date ?? null;
-}
 
-function getBarInterval(billingData: BillingData[]): [Date | null, Date | null] {
-  const start = findFirstMenstruationDay(billingData);
-  const apex = findApexDay(billingData);
-  if (!start || !apex) return [null, null];
-  const startDate = parseISO(start);
-  const apexDate = parseISO(apex);
-  const endDate = addDays(apexDate, 3);
-  return [startDate, endDate];
+  const cycles = [];
+  let apexIdx = 0;
+  for (let i = 0; i < menstruacoes.length; i++) {
+    const m = menstruacoes[i];
+    const mDate = parseISO(m.date);
+
+    // Procure o ápice após esse início de menstruação (e antes do próximo início)
+    while (apexIdx < apices.length && parseISO(apices[apexIdx].date) <= mDate) {
+      apexIdx++;
+    }
+    if (apexIdx < apices.length) {
+      const apexDate = parseISO(apices[apexIdx].date);
+      if (
+        i + 1 === menstruacoes.length ||
+        apexDate < parseISO(menstruacoes[i + 1].date)
+      ) {
+        cycles.push({ start: mDate, apex: apexDate });
+        apexIdx++;
+      }
+    }
+  }
+  return cycles;
 }
 
 const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
@@ -110,8 +118,8 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
     weeks.push(totalDays.slice(i, i + 7));
   }
 
-  // Intervalo da barra
-  const [barStart, barEnd] = getBarInterval(billingData);
+  // Cálculo dos ciclos para as barras
+  const cycles = getCycles(billingData);
 
   const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
@@ -310,118 +318,39 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
       {/* Weeks Grid */}
       <div>
         {weeks.map((week, weekIdx) => {
-          if (!barStart || !barEnd) {
-            return (
-              <div key={weekIdx} className="relative grid grid-cols-7">
-                {week.map((day) => {
-                  const billingData = getBillingDataForDay(day);
-                  const highlighted = isHighlighted(billingData);
-                  const dayStr = format(day, 'yyyy-MM-dd');
-                  return (
-                    <div
-                      key={day.toISOString()}
-                      className={cn(
-                        'min-h-[80px] p-1.5 border border-gray-100 relative group',
-                        !isSameMonth(day, month) && 'text-gray-400 bg-gray-50',
-                        getMenstruationColor(billingData),
-                        highlighted && 'ring-2 ring-primary ring-inset'
-                      )}
-                      onMouseEnter={() => setHoveredDay(dayStr)}
-                      onMouseLeave={() => setHoveredDay(null)}
-                    >
-                      <div className="flex flex-col h-full">
-                        <div
-                          className={cn(
-                            'text-xs font-medium mb-1 text-center',
-                            getMenstruationColor(billingData) && 'text-white'
-                          )}
-                        >
-                          {format(day, 'd')}
-                        </div>
-                        <div className="flex flex-wrap gap-0.5 justify-center flex-1">
-                          {renderDayIcons(billingData)}
-                        </div>
-                        {renderMucoTags(billingData)}
-                      </div>
-                      {renderTooltip(day, billingData)}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          }
+          // Para cada ciclo, desenhe a barra se ela intersecta a semana
+          const bars = cycles
+            .map(({ start, apex }) => {
+              const weekStart = week[0];
+              const weekEnd = week[6];
+              if (apex < weekStart || start > weekEnd) return null;
 
-          // Barra: calcula início/fim na semana
-          const weekStart = week[0];
-          const weekEnd = week[week.length - 1];
-          const segmentStart = isAfter(barStart, weekStart) ? barStart : weekStart;
-          const segmentEnd = isBefore(barEnd, weekEnd) ? barEnd : weekEnd;
-
-          if (isAfter(segmentStart, segmentEnd)) {
-            // Não há barra nesta semana
-            return (
-              <div key={weekIdx} className="relative grid grid-cols-7">
-                {week.map((day) => {
-                  const billingData = getBillingDataForDay(day);
-                  const highlighted = isHighlighted(billingData);
-                  const dayStr = format(day, 'yyyy-MM-dd');
-                  return (
-                    <div
-                      key={day.toISOString()}
-                      className={cn(
-                        'min-h-[80px] p-1.5 border border-gray-100 relative group',
-                        !isSameMonth(day, month) && 'text-gray-400 bg-gray-50',
-                        getMenstruationColor(billingData),
-                        highlighted && 'ring-2 ring-primary ring-inset'
-                      )}
-                      onMouseEnter={() => setHoveredDay(dayStr)}
-                      onMouseLeave={() => setHoveredDay(null)}
-                    >
-                      <div className="flex flex-col h-full">
-                        <div
-                          className={cn(
-                            'text-xs font-medium mb-1 text-center',
-                            getMenstruationColor(billingData) && 'text-white'
-                          )}
-                        >
-                          {format(day, 'd')}
-                        </div>
-                        <div className="flex flex-wrap gap-0.5 justify-center flex-1">
-                          {renderDayIcons(billingData)}
-                        </div>
-                        {renderMucoTags(billingData)}
-                      </div>
-                      {renderTooltip(day, billingData)}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          }
-
-          // Índices de início/fim da barra na semana (corrigido para cobrir toda a linha se necessário)
-          const barColStart = week.findIndex((d) => d.getTime() === segmentStart.getTime());
-          const barColEnd = week.findIndex((d) => d.getTime() === segmentEnd.getTime());
-          const from = barColStart !== -1 ? barColStart : 0;
-          let to = barColEnd !== -1 ? barColEnd : 6;
-          if (
-            barEnd &&
-            weekIdx === weeks.length - 1 &&
-            segmentEnd.getTime() === week[week.length - 1].getTime()
-          ) {
-            to = 6;
-          }
+              // Cálculo de índices na semana
+              const fromDate = start < weekStart ? weekStart : start;
+              const toDate = apex > weekEnd ? weekEnd : apex;
+              const fromIdx = week.findIndex(
+                (d) => d.getTime() === fromDate.getTime()
+              );
+              const toIdx = week.findIndex(
+                (d) => d.getTime() === toDate.getTime()
+              );
+              return (
+                <div
+                  key={start.toISOString() + apex.toISOString()}
+                  className="absolute top-1/2 h-2 bg-red-400 opacity-40 rounded-full z-0"
+                  style={{
+                    left: `${((fromIdx !== -1 ? fromIdx : 0) / 7) * 100}%`,
+                    width: `${(((toIdx !== -1 ? toIdx : 6) - (fromIdx !== -1 ? fromIdx : 0) + 1) / 7) * 100}%`,
+                    transform: 'translateY(-50%)'
+                  }}
+                />
+              );
+            })
+            .filter(Boolean);
 
           return (
             <div key={weekIdx} className="relative grid grid-cols-7">
-              <div
-                className="absolute top-1/2 h-2 bg-red-400 opacity-40 rounded-full z-0"
-                style={{
-                  left: `${(from / 7) * 100}%`,
-                  width: `${((to - from + 1) / 7) * 100}%`,
-                  transform: 'translateY(-50%)'
-                }}
-              />
+              {bars}
               {week.map((day) => {
                 const billingData = getBillingDataForDay(day);
                 const highlighted = isHighlighted(billingData);

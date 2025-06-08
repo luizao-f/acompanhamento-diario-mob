@@ -9,7 +9,7 @@ import CalendarGrid from '@/components/CalendarGrid';
 import DayFormModal from '@/components/DayFormModal';
 import CalendarLegend from '@/components/CalendarLegend';
 import FilterButtons from '@/components/FilterButtons';
-import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon, Droplet } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
@@ -98,6 +98,13 @@ const Calendar = () => {
               <Button variant="outline" size="sm">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Comparação
+              </Button>
+            </Link>
+            {/* Novo botão para página de previsão de menstruação */}
+            <Link to="/forecast">
+              <Button variant="outline" size="sm">
+                <Droplet className="h-4 w-4 mr-2" />
+                Previsão de Menstruação
               </Button>
             </Link>
             <Button variant="outline" size="sm" onClick={logout}>

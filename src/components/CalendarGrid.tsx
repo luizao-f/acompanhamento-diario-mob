@@ -1,5 +1,5 @@
 import React from 'react';
-import { isSameMonth, isToday, startOfWeek, endOfWeek, addDays, isWithinInterval, parseISO } from 'date-fns';
+import { isSameMonth, isToday, startOfWeek, endOfWeek, addDays, isWithinInterval, parseISO, isAfter, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import DayCell from './DayCell';
 
@@ -18,13 +18,11 @@ interface CalendarGridProps {
   billingData: BillingData[];
 }
 
-// Encontra o primeiro dia de menstruação (forte ou manchas)
 function findFirstMenstruationDay(billingData: BillingData[]): string | null {
   const item = billingData.find(d => d.menstruacao === 'forte' || d.menstruacao === 'manchas');
   return item?.date ?? null;
 }
 
-// Encontra o dia do ápice (escorregadia + elastico/transparente)
 function findApexDay(billingData: BillingData[]): string | null {
   const item = billingData.find(d =>
     d.sensacao?.includes('escorregadia') &&
@@ -33,14 +31,13 @@ function findApexDay(billingData: BillingData[]): string | null {
   return item?.date ?? null;
 }
 
-// Retorna intervalo de datas para a barra
 function getBarInterval(billingData: BillingData[]): [Date | null, Date | null] {
   const start = findFirstMenstruationDay(billingData);
   const apex = findApexDay(billingData);
   if (!start || !apex) return [null, null];
   const startDate = parseISO(start);
   const apexDate = parseISO(apex);
-  const endDate = addDays(apexDate, 3); // 3 dias após ápice
+  const endDate = addDays(apexDate, 3);
   return [startDate, endDate];
 }
 
@@ -53,16 +50,13 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
   const calendarStart = startOfWeek(monthStart, { locale: ptBR });
   const calendarEnd = endOfWeek(monthEnd, { locale: ptBR });
 
-  // Todos os dias exibidos no grid
   const totalDays: Date[] = [];
   for (let d = calendarStart; d <= calendarEnd; d = addDays(d, 1)) {
     totalDays.push(d);
   }
 
-  // Calcula o intervalo da barra global (pode começar/terminar fora do mês)
   const [barStart, barEnd] = getBarInterval(billingData);
 
-  // Divide em semanas
   const weeks: Date[][] = [];
   for (let i = 0; i < totalDays.length; i += 7) {
     weeks.push(totalDays.slice(i, i + 7));
@@ -79,24 +73,67 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
       </div>
       <div>
         {weeks.map((week, weekIdx) => {
-          // A semana tem barra se qualquer parte dela estiver dentro do intervalo
+          if (!barStart || !barEnd) {
+            return (
+              <div key={weekIdx} className="relative grid grid-cols-7">
+                {week.map((day) => (
+                  <div key={day.toISOString()} className="relative z-10">
+                    <DayCell
+                      day={day}
+                      isCurrentMonth={isSameMonth(day, currentDate)}
+                      isToday={isToday(day)}
+                      onClick={isSameMonth(day, currentDate) ? () => onDayClick(day) : undefined}
+                      highlightFilter={highlightFilter}
+                    />
+                  </div>
+                ))}
+              </div>
+            );
+          }
+
           const weekStart = week[0];
           const weekEnd = week[week.length - 1];
-          const weekHasBar = barStart && barEnd &&
-            (
-              isWithinInterval(weekStart, { start: barStart, end: barEnd }) ||
-              isWithinInterval(weekEnd, { start: barStart, end: barEnd }) ||
-              (barStart < weekStart && barEnd > weekEnd)
+
+          // Calcula onde a barra começa e termina dentro da semana
+          const segmentStart = isAfter(barStart, weekStart) ? barStart : weekStart;
+          const segmentEnd = isBefore(barEnd, weekEnd) ? barEnd : weekEnd;
+
+          // Se não há interseção, não desenha barra
+          if (isAfter(segmentStart, segmentEnd)) {
+            return (
+              <div key={weekIdx} className="relative grid grid-cols-7">
+                {week.map((day) => (
+                  <div key={day.toISOString()} className="relative z-10">
+                    <DayCell
+                      day={day}
+                      isCurrentMonth={isSameMonth(day, currentDate)}
+                      isToday={isToday(day)}
+                      onClick={isSameMonth(day, currentDate) ? () => onDayClick(day) : undefined}
+                      highlightFilter={highlightFilter}
+                    />
+                  </div>
+                ))}
+              </div>
             );
+          }
+
+          // Índices da barra na semana (0 a 6)
+          const barColStart = week.findIndex(d => d.getTime() === segmentStart.getTime());
+          const barColEnd = week.findIndex(d => d.getTime() === segmentEnd.getTime());
+
+          const from = barColStart !== -1 ? barColStart : 0;
+          const to = barColEnd !== -1 ? barColEnd : 6;
 
           return (
             <div key={weekIdx} className="relative grid grid-cols-7">
-              {weekHasBar && (
-                <div
-                  className="absolute left-0 right-0 top-1/2 h-2 bg-red-400 opacity-40 rounded-full z-0"
-                  style={{ transform: 'translateY(-50%)' }}
-                />
-              )}
+              <div
+                className="absolute top-1/2 h-2 bg-red-400 opacity-40 rounded-full z-0"
+                style={{
+                  left: `${(from / 7) * 100}%`,
+                  width: `${((to - from + 1) / 7) * 100}%`,
+                  transform: 'translateY(-50%)'
+                }}
+              />
               {week.map((day) => (
                 <div key={day.toISOString()} className="relative z-10">
                   <DayCell

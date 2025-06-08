@@ -1,5 +1,5 @@
 import React from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, startOfWeek, endOfWeek, addDays } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, startOfWeek, endOfWeek, addDays, parseISO, isAfter, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
@@ -11,12 +11,63 @@ interface ComparisonCalendarProps {
   highlightFilter?: string | null;
 }
 
+interface BillingData {
+  date: string;
+  menstruacao?: string;
+  sensacao?: string[];
+  muco?: string[];
+  [key: string]: any;
+}
+
+function findFirstMenstruationDay(billingData: BillingData[]): string | null {
+  const item = billingData.find(d => d.menstruacao === 'forte' || d.menstruacao === 'manchas');
+  return item?.date ?? null;
+}
+
+function findApexDay(billingData: BillingData[]): string | null {
+  const item = billingData.find(d =>
+    d.sensacao?.includes('escorregadia') &&
+    d.muco?.some((m: string) => m === 'elastico' || m === 'transparente')
+  );
+  return item?.date ?? null;
+}
+
+function getBarInterval(billingData: BillingData[]): [Date | null, Date | null] {
+  const start = findFirstMenstruationDay(billingData);
+  const apex = findApexDay(billingData);
+  if (!start || !apex) return [null, null];
+  const startDate = parseISO(start);
+  const apexDate = parseISO(apex);
+  const endDate = addDays(apexDate, 3);
+  return [startDate, endDate];
+}
+
 const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highlightFilter }) => {
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
-  const daysOfMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  // Gera um grid completo, preenchendo início/fim até domingo/sábado
+  // Busca dados do mês anterior, atual e seguinte
+  const prevMonthNum = monthStart.getMonth() === 0 ? 11 : monthStart.getMonth() - 1;
+  const nextMonthNum = monthStart.getMonth() === 11 ? 0 : monthStart.getMonth() + 1;
+  const prevYear = monthStart.getMonth() === 0 ? monthStart.getFullYear() - 1 : monthStart.getFullYear();
+  const nextYear = monthStart.getMonth() === 11 ? monthStart.getFullYear() + 1 : monthStart.getFullYear();
+
+  const { data: prevBillingData = [] } = useQuery({
+    queryKey: ['billing-month', prevYear, prevMonthNum],
+    queryFn: () => getBillingDataForMonth(prevYear, prevMonthNum),
+  });
+  const { data: currentBillingData = [] } = useQuery({
+    queryKey: ['billing-month', monthStart.getFullYear(), monthStart.getMonth()],
+    queryFn: () => getBillingDataForMonth(monthStart.getFullYear(), monthStart.getMonth()),
+  });
+  const { data: nextBillingData = [] } = useQuery({
+    queryKey: ['billing-month', nextYear, nextMonthNum],
+    queryFn: () => getBillingDataForMonth(nextYear, nextMonthNum),
+  });
+
+  const billingData: BillingData[] = [...prevBillingData, ...currentBillingData, ...nextBillingData];
+
+  // Gera todos os dias do grid, incluindo início/fim de semana
   const calendarStart = startOfWeek(monthStart, { locale: ptBR });
   const calendarEnd = endOfWeek(monthEnd, { locale: ptBR });
   const totalDays: Date[] = [];
@@ -24,14 +75,20 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
     totalDays.push(d);
   }
 
-  const { data: monthData = [], isLoading, error } = useQuery({
-    queryKey: ['billing-month', month.getFullYear(), month.getMonth()],
-    queryFn: () => getBillingDataForMonth(month.getFullYear(), month.getMonth()),
-  });
+  // Divide em semanas
+  const weeks: Date[][] = [];
+  for (let i = 0; i < totalDays.length; i += 7) {
+    weeks.push(totalDays.slice(i, i + 7));
+  }
+
+  // Intervalo da barra
+  const [barStart, barEnd] = getBarInterval(billingData);
+
+  const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
   const getBillingDataForDay = (day: Date) => {
     const dayString = format(day, 'yyyy-MM-dd');
-    const data = monthData.find((data: any) => data.date === dayString);
+    const data = billingData.find(data => data.date === dayString);
     return data;
   };
 
@@ -63,72 +120,67 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
     const icons = [];
     const highlighted = isHighlighted(billingData);
 
-    // Ícones de sensação
     if (billingData.sensacao?.includes('seca')) {
       icons.push(
-        <Circle
-          key="seca"
+        <Circle 
+          key="seca" 
           className={cn(
             "h-2 w-2 text-yellow-600",
             highlighted && highlightFilter === 'sensacao' && "ring-1 ring-yellow-400 rounded-full"
-          )}
+          )} 
         />
       );
     }
     if (billingData.sensacao?.includes('umida')) {
       icons.push(
-        <Droplets
-          key="umida"
+        <Droplets 
+          key="umida" 
           className={cn(
             "h-2 w-2 text-blue-400",
             highlighted && highlightFilter === 'sensacao' && "ring-1 ring-blue-200 rounded-full"
-          )}
+          )} 
         />
       );
     }
     if (billingData.sensacao?.includes('pegajosa')) {
       icons.push(
-        <Circle
-          key="pegajosa"
+        <Circle 
+          key="pegajosa" 
           className={cn(
             "h-2 w-2 text-orange-500 fill-current",
             highlighted && highlightFilter === 'sensacao' && "ring-1 ring-orange-300 rounded-full"
-          )}
+          )} 
         />
       );
     }
     if (billingData.sensacao?.includes('escorregadia')) {
       icons.push(
-        <Droplets
-          key="escorregadia"
+        <Droplets 
+          key="escorregadia" 
           className={cn(
             "h-2 w-2 text-blue-600",
             highlighted && highlightFilter === 'sensacao' && "ring-1 ring-blue-400 rounded-full"
-          )}
+          )} 
         />
       );
     }
-
-    // Ícone de relação sexual
     if (billingData.relacao_sexual) {
       icons.push(
-        <Heart
-          key="relacao"
+        <Heart 
+          key="relacao" 
           className={cn(
             "h-2 w-2 text-pink-500 fill-current",
             highlighted && highlightFilter === 'relacao_sexual' && "ring-1 ring-pink-300 rounded-full"
-          )}
+          )} 
         />
       );
     }
-
     return icons;
   };
 
   const renderMucoTags = (billingData: any) => {
     if (!billingData?.muco || billingData.muco.length === 0) return null;
     const highlighted = isHighlighted(billingData);
-
     return (
       <div className="flex flex-wrap gap-0.5 mt-1">
         {billingData.muco.map((mucoType: string, index: number) => (
@@ -152,34 +204,15 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
     );
   };
 
-  const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm flex items-center justify-center">
-        <div className="text-gray-500">Carregando...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm flex items-center justify-center">
-        <div className="text-red-500">Erro ao carregar dados</div>
-      </div>
-    );
-  }
-
   return (
-    // Removido overflow-hidden e h-full para evitar corte dos dias!
-    <div className="bg-white rounded-lg shadow-sm">
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden h-full">
       {/* Month Header */}
       <div className="bg-primary text-primary-foreground p-3 text-center">
         <h3 className="text-base font-semibold">
           {format(month, 'MMMM yyyy', { locale: ptBR })}
         </h3>
         <p className="text-xs opacity-80 mt-1">
-          {monthData.length} registros encontrados
+          {currentBillingData.length} registros encontrados
         </p>
       </div>
 
@@ -192,34 +225,130 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
         ))}
       </div>
 
-      {/* Days Grid */}
-      <div className="grid grid-cols-7">
-        {totalDays.map((day) => {
-          const billingData = getBillingDataForDay(day);
-          const highlighted = isHighlighted(billingData);
+      {/* Weeks Grid */}
+      <div>
+        {weeks.map((week, weekIdx) => {
+          if (!barStart || !barEnd) {
+            return (
+              <div key={weekIdx} className="relative grid grid-cols-7">
+                {week.map((day) => {
+                  const billingData = getBillingDataForDay(day);
+                  const highlighted = isHighlighted(billingData);
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className={cn(
+                        "min-h-[80px] p-1.5 border border-gray-100 relative",
+                        !isSameMonth(day, month) && "text-gray-400 bg-gray-50",
+                        getMenstruationColor(billingData),
+                        highlighted && "ring-2 ring-primary ring-inset"
+                      )}
+                    >
+                      <div className="flex flex-col h-full">
+                        <div className={cn(
+                          "text-xs font-medium mb-1 text-center",
+                          getMenstruationColor(billingData) && "text-white"
+                        )}>
+                          {format(day, 'd')}
+                        </div>
+                        <div className="flex flex-wrap gap-0.5 justify-center flex-1">
+                          {renderDayIcons(billingData)}
+                        </div>
+                        {renderMucoTags(billingData)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          }
+
+          // Barra: calcula início/fim na semana
+          const weekStart = week[0];
+          const weekEnd = week[week.length - 1];
+          const segmentStart = isAfter(barStart, weekStart) ? barStart : weekStart;
+          const segmentEnd = isBefore(barEnd, weekEnd) ? barEnd : weekEnd;
+
+          if (isAfter(segmentStart, segmentEnd)) {
+            // Não há barra nesta semana
+            return (
+              <div key={weekIdx} className="relative grid grid-cols-7">
+                {week.map((day) => {
+                  const billingData = getBillingDataForDay(day);
+                  const highlighted = isHighlighted(billingData);
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className={cn(
+                        "min-h-[80px] p-1.5 border border-gray-100 relative",
+                        !isSameMonth(day, month) && "text-gray-400 bg-gray-50",
+                        getMenstruationColor(billingData),
+                        highlighted && "ring-2 ring-primary ring-inset"
+                      )}
+                    >
+                      <div className="flex flex-col h-full">
+                        <div className={cn(
+                          "text-xs font-medium mb-1 text-center",
+                          getMenstruationColor(billingData) && "text-white"
+                        )}>
+                          {format(day, 'd')}
+                        </div>
+                        <div className="flex flex-wrap gap-0.5 justify-center flex-1">
+                          {renderDayIcons(billingData)}
+                        </div>
+                        {renderMucoTags(billingData)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          }
+
+          // Índices de início/fim da barra na semana
+          const barColStart = week.findIndex(d => d.getTime() === segmentStart.getTime());
+          const barColEnd = week.findIndex(d => d.getTime() === segmentEnd.getTime());
+          const from = barColStart !== -1 ? barColStart : 0;
+          const to = barColEnd !== -1 ? barColEnd : 6;
 
           return (
-            <div
-              key={day.toISOString()}
-              className={cn(
-                "min-h-[80px] p-1.5 border border-gray-100 relative",
-                !isSameMonth(day, month) && "text-gray-400 bg-gray-50",
-                getMenstruationColor(billingData),
-                highlighted && "ring-2 ring-primary ring-inset"
-              )}
-            >
-              <div className="flex flex-col h-full">
-                <div className={cn(
-                  "text-xs font-medium mb-1 text-center",
-                  getMenstruationColor(billingData) && "text-white"
-                )}>
-                  {format(day, 'd')}
-                </div>
-                <div className="flex flex-wrap gap-0.5 justify-center flex-1">
-                  {renderDayIcons(billingData)}
-                </div>
-                {renderMucoTags(billingData)}
-              </div>
+            <div key={weekIdx} className="relative grid grid-cols-7">
+              <div
+                className="absolute top-1/2 h-2 bg-red-400 opacity-40 rounded-full z-0"
+                style={{
+                  left: `${(from / 7) * 100}%`,
+                  width: `${((to - from + 1) / 7) * 100}%`,
+                  transform: 'translateY(-50%)'
+                }}
+              />
+              {week.map((day) => {
+                const billingData = getBillingDataForDay(day);
+                const highlighted = isHighlighted(billingData);
+                return (
+                  <div
+                    key={day.toISOString()}
+                    className={cn(
+                      "min-h-[80px] p-1.5 border border-gray-100 relative",
+                      !isSameMonth(day, month) && "text-gray-400 bg-gray-50",
+                      getMenstruationColor(billingData),
+                      highlighted && "ring-2 ring-primary ring-inset"
+                    )}
+                  >
+                    <div className="flex flex-col h-full">
+                      <div className={cn(
+                        "text-xs font-medium mb-1 text-center",
+                        getMenstruationColor(billingData) && "text-white"
+                      )}>
+                        {format(day, 'd')}
+                      </div>
+                      <div className="flex flex-wrap gap-0.5 justify-center flex-1">
+                        {renderDayIcons(billingData)}
+                      </div>
+                      {renderMucoTags(billingData)}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           );
         })}

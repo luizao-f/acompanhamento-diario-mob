@@ -30,20 +30,49 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
   const hasOvulation = predictions.some(pred => pred.type === 'ovulation');
   const hasFertileDays = predictions.some(pred => pred.type === 'fertile');
   
-  // Determinar cor de fundo
+  // Determinar cor de fundo baseado na lógica descrita
   const getBackgroundColor = () => {
-    if (hasMenstruation) return 'bg-red-500 text-white';
-    if (hasPredictedMenstruation && !correction) return 'bg-red-400 text-white';
-    if (hasOvulation) return 'bg-blue-100';
-    if (hasFertileDays) return 'bg-green-100';
+    // Se tem menstruação confirmada (dados reais)
+    if (hasMenstruation) {
+      return 'bg-red-500 text-white';
+    }
+    
+    // Se tem predição de menstruação mas não tem dados reais
+    if (hasPredictedMenstruation && !hasMenstruation) {
+      return 'bg-red-400 text-white';
+    }
+    
+    // Se tem ovulação prevista
+    if (hasOvulation) {
+      return 'bg-blue-100';
+    }
+    
+    // Se tem dias férteis previstos
+    if (hasFertileDays) {
+      return 'bg-green-100';
+    }
+    
     return '';
   };
 
-  // Determinar cor da barra inferior
+  // Determinar cor da barra inferior baseado nas correções
   const getBarColor = () => {
-    if (correction?.type === 'false_positive') return 'bg-orange-500';
-    if (correction?.type === 'false_negative') return 'bg-black';
-    if (hasPredictedMenstruation && !hasMenstruation) return 'bg-red-600';
+    if (correction) {
+      // Falso positivo: sistema previu menstruação mas não aconteceu
+      if (correction.type === 'false_positive') {
+        return 'bg-orange-500';
+      }
+      // Falso negativo: sistema não previu mas aconteceu (atraso/antecipação)
+      if (correction.type === 'false_negative') {
+        return 'bg-black';
+      }
+    }
+    
+    // Barra vermelha forte para predições de menstruação
+    if (hasPredictedMenstruation && !hasMenstruation) {
+      return 'bg-red-600';
+    }
+    
     return '';
   };
 
@@ -89,7 +118,7 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
         )}
       </div>
 
-      {/* Barra inferior para correções */}
+      {/* Barra inferior para predições e correções */}
       {barColor && (
         <div className={cn("absolute bottom-0 left-0 right-0 h-1", barColor)} />
       )}

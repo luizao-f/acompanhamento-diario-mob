@@ -36,6 +36,8 @@ export const calculateCycleData = (billingData: BillingData[], lookbackMonths: n
     .filter(data => new Date(data.date) >= cutoffDate)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+  console.log('Dados de menstruação filtrados:', menstruationData);
+
   if (menstruationData.length === 0) {
     return { averageCycle: 28, averageDuration: 5, periods: [] };
   }
@@ -71,6 +73,8 @@ export const calculateCycleData = (billingData: BillingData[], lookbackMonths: n
     });
   }
 
+  console.log('Períodos identificados:', periods);
+
   // Calcular médias
   const cycleLengths: number[] = [];
   for (let i = 1; i < periods.length; i++) {
@@ -86,6 +90,8 @@ export const calculateCycleData = (billingData: BillingData[], lookbackMonths: n
     ? Math.round(periods.reduce((sum, period) => sum + period.duration, 0) / periods.length)
     : 5;
 
+  console.log('Ciclo médio:', averageCycle, 'Duração média:', averageDuration);
+
   return { averageCycle, averageDuration, periods };
 };
 
@@ -93,11 +99,15 @@ export const generatePredictions = (cycleData: CycleData, months: number = 6): P
   const predictions: PredictionData[] = [];
   const { averageCycle, averageDuration, periods } = cycleData;
   
+  console.log('Gerando predições com:', { averageCycle, averageDuration, periodsCount: periods.length });
+  
   if (periods.length === 0) return predictions;
 
   // Começar a partir do último período conhecido
   const lastPeriod = periods[periods.length - 1];
   let nextPeriodStart = addDays(new Date(lastPeriod.startDate), averageCycle);
+  
+  console.log('Último período:', lastPeriod.startDate, 'Próximo previsto:', format(nextPeriodStart, 'yyyy-MM-dd'));
   
   // Gerar predições para os próximos X meses
   const endDate = addMonths(new Date(), months);
@@ -140,6 +150,7 @@ export const generatePredictions = (cycleData: CycleData, months: number = 6): P
     nextPeriodStart = addDays(nextPeriodStart, averageCycle);
   }
 
+  console.log('Predições geradas:', predictions.length);
   return predictions;
 };
 
@@ -178,12 +189,17 @@ export const calculateMonthInsights = (
   const delays = monthCorrections.filter(corr => corr.type === 'false_negative').length;
   const anticipations = monthCorrections.filter(corr => corr.type === 'false_positive').length;
 
+  // Calcular precisão
+  const totalPredictions = monthPredictions.length;
+  const correctPredictions = totalPredictions - monthCorrections.length;
+  const accuracy = totalPredictions > 0 ? 
+    ((correctPredictions / totalPredictions) * 100).toFixed(1) : '100';
+
   return {
     menstruationDays: actualMenstruationDays,
     predictedDays: monthPredictions.length,
     delays,
     anticipations,
-    accuracy: monthPredictions.length > 0 ? 
-      ((monthPredictions.length - monthCorrections.length) / monthPredictions.length * 100).toFixed(1) : '100'
+    accuracy
   };
 };

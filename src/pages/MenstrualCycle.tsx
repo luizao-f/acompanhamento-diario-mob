@@ -37,11 +37,14 @@ const MenstrualCycle = () => {
       const startDate = new Date();
       startDate.setMonth(startDate.getMonth() - lookbackMonths);
       
-      for (let i = 0; i <= lookbackMonths + 6; i++) {
-        const date = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+      // Buscar dados dos últimos X meses + próximos 6 meses para visualização
+      for (let i = -lookbackMonths; i <= 6; i++) {
+        const date = new Date();
+        date.setMonth(date.getMonth() + i);
         const monthData = await getBillingDataForMonth(date.getFullYear(), date.getMonth());
         data.push(...monthData);
       }
+      console.log('Dados históricos carregados:', data.length, 'registros');
       return data;
     },
   });
@@ -54,10 +57,12 @@ const MenstrualCycle = () => {
 
   // Calcular dados do ciclo e predições
   const cycleData = useMemo(() => {
+    console.log('Calculando dados do ciclo com', historicalData.length, 'registros');
     return calculateCycleData(historicalData, lookbackMonths);
   }, [historicalData, lookbackMonths]);
 
   const predictions = useMemo(() => {
+    console.log('Gerando predições baseado em:', cycleData);
     return generatePredictions(cycleData, 6);
   }, [cycleData]);
 
@@ -68,13 +73,15 @@ const MenstrualCycle = () => {
   });
 
   // Calcular insights do mês
-  const monthInsights = calculateMonthInsights(
-    currentYear, 
-    currentMonth, 
-    currentMonthData, 
-    currentMonthPredictions, 
-    corrections
-  );
+  const monthInsights = useMemo(() => {
+    return calculateMonthInsights(
+      currentYear, 
+      currentMonth, 
+      currentMonthData, 
+      currentMonthPredictions, 
+      corrections
+    );
+  }, [currentYear, currentMonth, currentMonthData, currentMonthPredictions, corrections]);
 
   const handlePreviousMonth = () => {
     setCurrentDate(subMonths(currentDate, 1));
@@ -103,7 +110,7 @@ const MenstrualCycle = () => {
   const handleDayClick = (day: Date, hasData: boolean, isPrediction: boolean) => {
     const dayString = format(day, 'yyyy-MM-dd');
     console.log('Clicou no dia:', dayString, { hasData, isPrediction });
-    // Aqui você pode implementar a lógica para editar correções
+    // TODO: Implementar lógica para editar correções
   };
 
   const handleLookbackChange = (months: number) => {
@@ -269,6 +276,11 @@ const MenstrualCycle = () => {
                 <span className="font-medium">Períodos analisados:</span> {cycleData.periods.length}
               </div>
             </div>
+            {cycleData.periods.length > 0 && (
+              <div className="mt-2 text-xs text-gray-600">
+                <span className="font-medium">Último período:</span> {cycleData.periods[cycleData.periods.length - 1]?.startDate}
+              </div>
+            )}
           </div>
         </div>
       </div>

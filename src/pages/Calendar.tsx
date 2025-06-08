@@ -15,7 +15,7 @@ import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon,
 
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
-import { generatePredictions } from '@/lib/menstruationPrediction';
+import { getPredictionsForMonth } from '@/lib/menstruationPrediction';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -87,10 +87,10 @@ const Calendar = () => {
   // Junta todos os dados
   const billingData = [...prevBillingData, ...currentBillingData, ...nextBillingData];
 
-  // Gerar predições
+  // Buscar predições para o mês atual
   const { data: predictions = [] } = useQuery({
     queryKey: ['predictions', currentYear, currentMonth],
-    queryFn: () => generatePredictions(billingData),
+    queryFn: () => getPredictionsForMonth(currentYear, currentMonth),
   });
 
   return (
@@ -187,9 +187,8 @@ const Calendar = () => {
         {/* Insights do Mês */}
         <div className="mb-3">
           <MonthInsights 
-            currentDate={currentDate}
-            billingData={billingData}
-            predictions={predictions}
+            year={currentYear}
+            month={currentMonth}
           />
         </div>
 

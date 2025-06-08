@@ -207,11 +207,11 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-visible min-h-full">
       {/* Month Header */}
-      <div className="bg-primary text-primary-foreground p-3 text-center">
-        <h3 className="text-base font-semibold">
+      <div className="bg-primary text-primary-foreground p-3 text-center flex flex-col items-center justify-center sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
+        <h3 className="text-base font-semibold break-words text-center sm:text-left w-full sm:w-auto text-ellipsis overflow-hidden whitespace-nowrap">
           {format(month, 'MMMM yyyy', { locale: ptBR })}
         </h3>
-        <p className="text-xs opacity-80 mt-1">
+        <p className="text-xs opacity-80 mt-0 sm:mt-0 w-full sm:w-auto text-center sm:text-right">
           {currentBillingData.length} registros encontrados
         </p>
       </div>

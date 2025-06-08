@@ -9,7 +9,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Calendar from "./pages/Calendar";
 import Comparison from "./pages/Comparison";
-import Predictions from "./pages/Predictions";
 
 const queryClient = new QueryClient();
 
@@ -30,11 +29,6 @@ const App = () => (
             <Route path="/comparison" element={
               <ProtectedRoute>
                 <Comparison />
-              </ProtectedRoute>
-            } />
-            <Route path="/predictions" element={
-              <ProtectedRoute>
-                <Predictions />
               </ProtectedRoute>
             } />
           </Routes>

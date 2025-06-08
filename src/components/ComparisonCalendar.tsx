@@ -156,7 +156,7 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden h-full flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow-sm flex items-center justify-center">
         <div className="text-gray-500">Carregando...</div>
       </div>
     );
@@ -164,14 +164,15 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden h-full flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow-sm flex items-center justify-center">
         <div className="text-red-500">Erro ao carregar dados</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden h-full">
+    // Removido overflow-hidden e h-full para evitar corte dos dias!
+    <div className="bg-white rounded-lg shadow-sm">
       {/* Month Header */}
       <div className="bg-primary text-primary-foreground p-3 text-center">
         <h3 className="text-base font-semibold">

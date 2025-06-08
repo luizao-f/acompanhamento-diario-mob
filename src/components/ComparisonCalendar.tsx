@@ -1,5 +1,5 @@
 import React from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, startOfWeek, endOfWeek, addDays, parseISO, isAfter, isBefore } from 'date-fns';
+import { format, startOfMonth, endOfMonth, isSameMonth, startOfWeek, endOfWeek, addDays, parseISO, isAfter, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
@@ -18,6 +18,8 @@ interface BillingData {
   muco?: string[];
   [key: string]: any;
 }
+
+// ... findFirstMenstruationDay, findApexDay, getBarInterval (iguais ao anterior)
 
 function findFirstMenstruationDay(billingData: BillingData[]): string | null {
   const item = billingData.find(d => d.menstruacao === 'forte' || d.menstruacao === 'manchas');
@@ -207,11 +209,11 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-visible min-h-full">
       {/* Month Header */}
-      <div className="bg-primary text-primary-foreground p-3 text-center flex flex-col items-center justify-center sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
-        <h3 className="text-base font-semibold break-words text-center sm:text-left w-full sm:w-auto text-ellipsis overflow-hidden whitespace-nowrap">
+      <div className="bg-primary text-primary-foreground w-full p-3 flex flex-col gap-1 sm:flex-row sm:justify-between sm:items-center">
+        <h3 className="text-base font-semibold break-words text-center sm:text-left w-full sm:w-auto">
           {format(month, 'MMMM yyyy', { locale: ptBR })}
         </h3>
-        <p className="text-xs opacity-80 mt-0 sm:mt-0 w-full sm:w-auto text-center sm:text-right">
+        <p className="text-xs opacity-80 mt-0 w-full sm:w-auto text-center sm:text-right">
           {currentBillingData.length} registros encontrados
         </p>
       </div>
@@ -309,7 +311,6 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
           const barColStart = week.findIndex(d => d.getTime() === segmentStart.getTime());
           const barColEnd = week.findIndex(d => d.getTime() === segmentEnd.getTime());
           const from = barColStart !== -1 ? barColStart : 0;
-          // AJUSTE: se a barra termina no último dia do calendário, forçar até o final da grid
           let to = barColEnd !== -1 ? barColEnd : 6;
           if (
             barEnd &&

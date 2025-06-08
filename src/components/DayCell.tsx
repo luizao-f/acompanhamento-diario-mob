@@ -5,16 +5,25 @@ import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { getBillingData } from '@/lib/supabase';
 import { Droplets, Heart, Circle } from 'lucide-react';
+import type { PredictionData } from '@/lib/menstruationPrediction';
 
 interface DayCellProps {
   day: Date;
   isCurrentMonth: boolean;
   isToday: boolean;
-  onClick: () => void;
+  onClick?: () => void;
   highlightFilter?: string | null;
+  prediction?: PredictionData;
 }
 
-const DayCell: React.FC<DayCellProps> = ({ day, isCurrentMonth, isToday, onClick, highlightFilter }) => {
+const DayCell: React.FC<DayCellProps> = ({ 
+  day, 
+  isCurrentMonth, 
+  isToday, 
+  onClick, 
+  highlightFilter,
+  prediction 
+}) => {
   const dayString = format(day, 'yyyy-MM-dd');
   
   const { data: billingData } = useQuery({
@@ -23,10 +32,38 @@ const DayCell: React.FC<DayCellProps> = ({ day, isCurrentMonth, isToday, onClick
   });
 
   const getMenstruationColor = () => {
-    if (!billingData?.menstruacao || billingData.menstruacao === 'sem_sangramento') return '';
-    if (billingData.menstruacao === 'forte') return 'bg-red-500';
-    if (billingData.menstruacao === 'manchas') return 'bg-red-300';
+    // Se há dados reais de menstruação
+    if (billingData?.menstruacao && billingData.menstruacao !== 'sem_sangramento') {
+      return 'bg-red-500';
+    }
+    
+    // Se há predição mas não dados reais
+    if (prediction?.isPredicted && !prediction?.isActual) {
+      return 'bg-red-300';
+    }
+    
     return '';
+  };
+
+  const getBarColor = () => {
+    if (!prediction) return null;
+    
+    // Barra vermelha para predições
+    if (prediction.isPredicted && !prediction.correctionType) {
+      return 'bg-red-500';
+    }
+    
+    // Barra laranja para falsos positivos (sistema previu, mas não aconteceu)
+    if (prediction.correctionType === 'false_positive') {
+      return 'bg-orange-500';
+    }
+    
+    // Barra preta para falsos negativos (sistema não previu, mas aconteceu)
+    if (prediction.correctionType === 'false_negative') {
+      return 'bg-black';
+    }
+    
+    return null;
   };
 
   const isHighlighted = () => {
@@ -143,11 +180,12 @@ const DayCell: React.FC<DayCellProps> = ({ day, isCurrentMonth, isToday, onClick
   };
 
   const highlighted = isHighlighted();
+  const barColor = getBarColor();
 
   return (
     <div
       className={cn(
-        "min-h-[100px] p-2 border border-gray-100 cursor-pointer transition-all duration-200 hover:bg-gray-50",
+        "min-h-[100px] p-2 border border-gray-100 cursor-pointer transition-all duration-200 hover:bg-gray-50 relative",
         !isCurrentMonth && "text-gray-400 bg-gray-50",
         isToday && "ring-2 ring-primary ring-inset",
         getMenstruationColor(),
@@ -155,6 +193,11 @@ const DayCell: React.FC<DayCellProps> = ({ day, isCurrentMonth, isToday, onClick
       )}
       onClick={onClick}
     >
+      {/* Barra de predição/correção */}
+      {barColor && (
+        <div className={cn("absolute bottom-0 left-0 right-0 h-1", barColor)} />
+      )}
+      
       <div className="flex flex-col h-full">
         <div className={cn(
           "text-sm font-medium mb-1",

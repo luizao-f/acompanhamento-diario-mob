@@ -59,7 +59,7 @@ export const calculateCycleData = async (lookbackMonths: number = 6): Promise<Cy
         currentPeriod = { start: recordDate };
       } else if (!isMenstruation && currentPeriod && !currentPeriod.end) {
         // Fim do período atual
-        currentPeriod.end = subMonths(recordDate, 1);
+        currentPeriod.end = addDays(recordDate, -1);
         periods.push({
           startDate: currentPeriod.start,
           endDate: currentPeriod.end,
@@ -203,7 +203,7 @@ export const getPredictionsForMonth = async (year: number, month: number): Promi
         date: dateStr,
         isPredicted,
         isActual: !!isActual,
-        correctionType: correction?.correction_type || null
+        correctionType: correction?.correction_type as 'false_positive' | 'false_negative' | null || null
       });
     }
 

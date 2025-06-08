@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -9,17 +9,18 @@ import { Link } from 'react-router-dom';
 import CalendarGrid from '@/components/CalendarGrid';
 import DayFormModal from '@/components/DayFormModal';
 import CalendarLegend from '@/components/CalendarLegend';
-import FilterButtons from '@/components/FilterButtons';
-import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon, TrendingUp } from 'lucide-react';
+import PredictionSettings from '@/components/PredictionSettings';
+import MonthInsights from '@/components/MonthInsights';
+import { ChevronLeft, ChevronRight, LogOut, Calendar as CalendarIcon, TrendingUp } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
+import { getPredictionsForMonth, calculateCycleData, generatePredictions } from '@/lib/menstruationPrediction';
 
-const Calendar = () => {
+const Predictions = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [highlightFilter, setHighlightFilter] = useState<string | null>(null);
   const { logout } = useAuth();
 
   const monthStart = startOfMonth(currentDate);
@@ -63,6 +64,22 @@ const Calendar = () => {
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
+  // Gerar predições iniciais quando a página carrega
+  useEffect(() => {
+    const initializePredictions = async () => {
+      try {
+        const cycleData = await calculateCycleData(6);
+        if (cycleData) {
+          await generatePredictions(cycleData);
+        }
+      } catch (error) {
+        console.error('Error initializing predictions:', error);
+      }
+    };
+    
+    initializePredictions();
+  }, []);
+
   // Buscar dados do mês anterior, atual e seguinte
   const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
   const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
@@ -82,6 +99,12 @@ const Calendar = () => {
     queryFn: () => getBillingDataForMonth(nextYear, nextMonth),
   });
 
+  // Buscar predições para o mês atual
+  const { data: predictions = [] } = useQuery({
+    queryKey: ['predictions', currentYear, currentMonth],
+    queryFn: () => getPredictionsForMonth(currentYear, currentMonth),
+  });
+
   // Junta todos os dados
   const billingData = [...prevBillingData, ...currentBillingData, ...nextBillingData];
 
@@ -91,20 +114,14 @@ const Calendar = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">
           <div className="flex items-center gap-4">
-            <CalendarIcon className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-primary">Método Billings</h1>
+            <TrendingUp className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold text-primary">Predições de Menstruação</h1>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/predictions">
+            <Link to="/">
               <Button variant="outline" size="sm">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Predições
-              </Button>
-            </Link>
-            <Link to="/comparison">
-              <Button variant="outline" size="sm">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Comparação
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                Calendário
               </Button>
             </Link>
             <Button variant="outline" size="sm" onClick={logout}>
@@ -168,19 +185,21 @@ const Calendar = () => {
           </div>
         </div>
 
-        {/* Filter Buttons */}
+        {/* Configurações de Predição */}
         <div className="mb-3">
-          <FilterButtons 
-            activeFilter={highlightFilter}
-            onFilterChange={setHighlightFilter}
-          />
+          <PredictionSettings />
         </div>
 
         {/* Legenda */}
         <div className="mb-3">
           <div className="bg-white rounded-lg shadow-sm p-3">
-            <CalendarLegenda />
+            <CalendarLegend />
           </div>
+        </div>
+
+        {/* Insights do Mês */}
+        <div className="mb-3">
+          <MonthInsights year={currentYear} month={currentMonth} />
         </div>
 
         {/* Calendar */}
@@ -189,8 +208,8 @@ const Calendar = () => {
             days={days}
             currentDate={currentDate}
             onDayClick={handleDayClick}
-            highlightFilter={highlightFilter}
             billingData={billingData}
+            predictions={predictions}
           />
         </div>
 
@@ -205,4 +224,4 @@ const Calendar = () => {
   );
 };
 
-export default Calendar;
+export default Predictions;

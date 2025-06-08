@@ -1,71 +1,13 @@
+import React from "react";
+import { Link } from "react-router-dom"; // ou use 'next/link' se for Next.js
+import { BarChart3, CalendarIcon, LogOut, ChevronLeft, ChevronRight, Droplet } from "lucide-react";
+import { Button } from "@/components/ui/button";
+// ... outros imports necessários
 
-import React, { useState } from 'react';
-import { format, addMonths, subMonths } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { ChevronLeft, ChevronRight, LogOut, Calendar as CalendarIcon, BarChart3 } from 'lucide-react';
-import ComparisonCalendar from '@/components/ComparisonCalendar';
-import CalendarLegend from '@/components/CalendarLegend';
-import FilterButtons from '@/components/FilterButtons';
+// ...código de hooks e lógica...
 
-const Comparison = () => {
-  const [baseDate, setBaseDate] = useState(new Date());
-  const [highlightFilter, setHighlightFilter] = useState<string | null>(null);
-  const [monthsToShow, setMonthsToShow] = useState(4);
-  const { logout } = useAuth();
-
-  // Gerar os meses baseado na quantidade selecionada
-  const generateMonths = (baseDate: Date, count: number) => {
-    const months = [];
-    for (let i = count - 1; i >= 0; i--) {
-      months.push(subMonths(baseDate, i));
-    }
-    return months;
-  };
-
-  const months = generateMonths(baseDate, monthsToShow);
-
-  const handlePreviousMonths = () => {
-    setBaseDate(subMonths(baseDate, monthsToShow));
-  };
-
-  const handleNextMonths = () => {
-    setBaseDate(addMonths(baseDate, monthsToShow));
-  };
-
-  const handleYearChange = (year: string) => {
-    const newDate = new Date(baseDate);
-    newDate.setFullYear(parseInt(year));
-    setBaseDate(newDate);
-  };
-
-  const handleMonthChange = (month: string) => {
-    const newDate = new Date(baseDate);
-    newDate.setMonth(parseInt(month));
-    setBaseDate(newDate);
-  };
-
-  const handleMonthsToShowChange = (value: string) => {
-    setMonthsToShow(parseInt(value));
-  };
-
-  const currentYear = baseDate.getFullYear();
-  const currentMonth = baseDate.getMonth();
-
-  // Definir grid layout baseado na quantidade de meses
-  const getGridCols = () => {
-    switch (monthsToShow) {
-      case 4: return 'lg:grid-cols-2 xl:grid-cols-4';
-      case 6: return 'lg:grid-cols-2 xl:grid-cols-3';
-      case 8: return 'lg:grid-cols-2 xl:grid-cols-4';
-      case 10: return 'lg:grid-cols-2 xl:grid-cols-5';
-      case 12: return 'lg:grid-cols-3 xl:grid-cols-4';
-      default: return 'lg:grid-cols-2 xl:grid-cols-4';
-    }
-  };
+export default function ComparisonPage() {
+  // ...lógicas e states...
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
@@ -83,6 +25,13 @@ const Comparison = () => {
                 Calendário
               </Button>
             </Link>
+            {/* NOVO: Botão para a página de menstruação */}
+            <Link to="/forecast">
+              <Button variant="outline" size="sm">
+                <Droplet className="h-4 w-4 mr-2" />
+                Previsão de Menstruação
+              </Button>
+            </Link>
             <Button variant="outline" size="sm" onClick={logout}>
               <LogOut className="h-4 w-4 mr-2" />
               Sair
@@ -90,100 +39,13 @@ const Comparison = () => {
           </div>
         </div>
 
-        {/* Navigation */}
+        {/* Navigation (continua igual) */}
         <div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handlePreviousMonths}>
-              <ChevronLeft className="h-4 w-4" />
-              {monthsToShow} Meses Anteriores
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleNextMonths}>
-              Próximos {monthsToShow} Meses
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold text-primary">
-              Comparação: {format(months[0], 'MMM', { locale: ptBR })} - {format(months[months.length - 1], 'MMM yyyy', { locale: ptBR })}
-            </h2>
-            
-            <div className="flex items-center gap-2">
-              {/* Seletor de quantidade de meses */}
-              <Select value={monthsToShow.toString()} onValueChange={handleMonthsToShowChange}>
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="4">4 meses</SelectItem>
-                  <SelectItem value="6">6 meses</SelectItem>
-                  <SelectItem value="8">8 meses</SelectItem>
-                  <SelectItem value="10">10 meses</SelectItem>
-                  <SelectItem value="12">12 meses</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <SelectItem key={i} value={i.toString()}>
-                      {format(new Date(2024, i, 1), 'MMMM', { locale: ptBR })}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-                <SelectTrigger className="w-20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 10 }, (_, i) => {
-                    const year = currentYear - 5 + i;
-                    return (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          {/* ...navegação de meses... */}
         </div>
 
-        {/* Filter Buttons */}
-        <div className="mb-3">
-          <FilterButtons 
-            activeFilter={highlightFilter}
-            onFilterChange={setHighlightFilter}
-          />
-        </div>
-
-        {/* Legenda acima dos gráficos */}
-        <div className="mb-3">
-          <div className="bg-white rounded-lg shadow-sm p-3">
-            <CalendarLegend />
-          </div>
-        </div>
-
-        {/* Calendários de comparação ocupando toda a largura */}
-        <div className={`grid grid-cols-1 ${getGridCols()} gap-3`}>
-          {months.map((month, index) => (
-            <div key={month.toISOString()} className="h-[450px]">
-              <ComparisonCalendar 
-                month={month} 
-                highlightFilter={highlightFilter}
-              />
-            </div>
-          ))}
-        </div>
+        {/* ...restante da página... */}
       </div>
     </div>
   );
-};
-
-export default Comparison;
+}

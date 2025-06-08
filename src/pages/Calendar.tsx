@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,10 @@ import DayFormModal from '@/components/DayFormModal';
 import CalendarLegend from '@/components/CalendarLegend';
 import FilterButtons from '@/components/FilterButtons';
 import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
+
+// IMPORTAÇÃO ADICIONADA
+import { useQuery } from '@tanstack/react-query';
+import { getBillingDataForMonth } from '@/lib/supabase';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -59,6 +62,12 @@ const Calendar = () => {
 
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
+
+  // BUSCA OS DADOS DO MÊS E PASSA PARA O CALENDÁRIO
+  const { data: billingData = [] } = useQuery({
+    queryKey: ['billing-month', currentYear, currentMonth],
+    queryFn: () => getBillingDataForMonth(currentYear, currentMonth),
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
@@ -159,6 +168,7 @@ const Calendar = () => {
             currentDate={currentDate}
             onDayClick={handleDayClick}
             highlightFilter={highlightFilter}
+            billingData={billingData} // <- NOVO: passa os dados do mês aqui
           />
         </div>
 

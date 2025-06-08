@@ -10,10 +10,12 @@ import CalendarGrid from '@/components/CalendarGrid';
 import DayFormModal from '@/components/DayFormModal';
 import CalendarLegend from '@/components/CalendarLegend';
 import FilterButtons from '@/components/FilterButtons';
+import MonthInsights from '@/components/MonthInsights';
 import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon, TrendingUp } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
+import { generatePredictions } from '@/lib/menstruationPrediction';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -84,6 +86,12 @@ const Calendar = () => {
 
   // Junta todos os dados
   const billingData = [...prevBillingData, ...currentBillingData, ...nextBillingData];
+
+  // Gerar predições
+  const { data: predictions = [] } = useQuery({
+    queryKey: ['predictions', currentYear, currentMonth],
+    queryFn: () => generatePredictions(billingData),
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
@@ -176,11 +184,18 @@ const Calendar = () => {
           />
         </div>
 
+        {/* Insights do Mês */}
+        <div className="mb-3">
+          <MonthInsights 
+            currentDate={currentDate}
+            billingData={billingData}
+            predictions={predictions}
+          />
+        </div>
+
         {/* Legenda */}
         <div className="mb-3">
-          <div className="bg-white rounded-lg shadow-sm p-3">
-            <CalendarLegenda />
-          </div>
+          <CalendarLegend />
         </div>
 
         {/* Calendar */}
@@ -191,6 +206,7 @@ const Calendar = () => {
             onDayClick={handleDayClick}
             highlightFilter={highlightFilter}
             billingData={billingData}
+            predictions={predictions}
           />
         </div>
 

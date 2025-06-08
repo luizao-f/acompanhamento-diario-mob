@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, startOfWeek, endOfWeek, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
@@ -15,24 +14,24 @@ interface ComparisonCalendarProps {
 const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highlightFilter }) => {
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-  
+  const daysOfMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  // Gera um grid completo, preenchendo início/fim até domingo/sábado
+  const calendarStart = startOfWeek(monthStart, { locale: ptBR });
+  const calendarEnd = endOfWeek(monthEnd, { locale: ptBR });
+  const totalDays: Date[] = [];
+  for (let d = calendarStart; d <= calendarEnd; d = addDays(d, 1)) {
+    totalDays.push(d);
+  }
+
   const { data: monthData = [], isLoading, error } = useQuery({
     queryKey: ['billing-month', month.getFullYear(), month.getMonth()],
     queryFn: () => getBillingDataForMonth(month.getFullYear(), month.getMonth()),
   });
 
-  // Debug logs para verificar os dados
-  console.log(`ComparisonCalendar for ${format(month, 'yyyy-MM')}: 
-    - Query key: [billing-month, ${month.getFullYear()}, ${month.getMonth()}]
-    - Loading: ${isLoading}
-    - Error: ${error}
-    - Records loaded: ${monthData.length}
-    - Sample data:`, monthData.slice(0, 3));
-
   const getBillingDataForDay = (day: Date) => {
     const dayString = format(day, 'yyyy-MM-dd');
-    const data = monthData.find(data => data.date === dayString);
+    const data = monthData.find((data: any) => data.date === dayString);
     return data;
   };
 
@@ -45,7 +44,6 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
 
   const isHighlighted = (billingData: any) => {
     if (!highlightFilter || !billingData) return false;
-    
     switch (highlightFilter) {
       case 'menstruacao':
         return billingData.menstruacao && billingData.menstruacao !== 'sem_sangramento';
@@ -62,52 +60,51 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
 
   const renderDayIcons = (billingData: any) => {
     if (!billingData) return null;
-
     const icons = [];
     const highlighted = isHighlighted(billingData);
 
     // Ícones de sensação
     if (billingData.sensacao?.includes('seca')) {
       icons.push(
-        <Circle 
-          key="seca" 
+        <Circle
+          key="seca"
           className={cn(
             "h-2 w-2 text-yellow-600",
             highlighted && highlightFilter === 'sensacao' && "ring-1 ring-yellow-400 rounded-full"
-          )} 
+          )}
         />
       );
     }
     if (billingData.sensacao?.includes('umida')) {
       icons.push(
-        <Droplets 
-          key="umida" 
+        <Droplets
+          key="umida"
           className={cn(
             "h-2 w-2 text-blue-400",
             highlighted && highlightFilter === 'sensacao' && "ring-1 ring-blue-200 rounded-full"
-          )} 
+          )}
         />
       );
     }
     if (billingData.sensacao?.includes('pegajosa')) {
       icons.push(
-        <Circle 
-          key="pegajosa" 
+        <Circle
+          key="pegajosa"
           className={cn(
             "h-2 w-2 text-orange-500 fill-current",
             highlighted && highlightFilter === 'sensacao' && "ring-1 ring-orange-300 rounded-full"
-          )} 
+          )}
         />
       );
     }
     if (billingData.sensacao?.includes('escorregadia')) {
       icons.push(
-        <Droplets 
-          key="escorregadia" 
+        <Droplets
+          key="escorregadia"
           className={cn(
             "h-2 w-2 text-blue-600",
             highlighted && highlightFilter === 'sensacao' && "ring-1 ring-blue-400 rounded-full"
-          )} 
+          )}
         />
       );
     }
@@ -115,12 +112,12 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
     // Ícone de relação sexual
     if (billingData.relacao_sexual) {
       icons.push(
-        <Heart 
-          key="relacao" 
+        <Heart
+          key="relacao"
           className={cn(
             "h-2 w-2 text-pink-500 fill-current",
             highlighted && highlightFilter === 'relacao_sexual' && "ring-1 ring-pink-300 rounded-full"
-          )} 
+          )}
         />
       );
     }
@@ -130,7 +127,6 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
 
   const renderMucoTags = (billingData: any) => {
     if (!billingData?.muco || billingData.muco.length === 0) return null;
-
     const highlighted = isHighlighted(billingData);
 
     return (
@@ -197,10 +193,10 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
 
       {/* Days Grid */}
       <div className="grid grid-cols-7">
-        {days.map((day) => {
+        {totalDays.map((day) => {
           const billingData = getBillingDataForDay(day);
           const highlighted = isHighlighted(billingData);
-          
+
           return (
             <div
               key={day.toISOString()}
@@ -218,11 +214,9 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({ month, highligh
                 )}>
                   {format(day, 'd')}
                 </div>
-                
                 <div className="flex flex-wrap gap-0.5 justify-center flex-1">
                   {renderDayIcons(billingData)}
                 </div>
-
                 {renderMucoTags(billingData)}
               </div>
             </div>

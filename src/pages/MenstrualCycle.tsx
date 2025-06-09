@@ -141,14 +141,14 @@ const { data: historicalData = [] } = useQuery({
   // Salvar predições quando forem geradas
   useEffect(() => {
     if (generatedPredictions.length > 0 && cycleData.periods.length > 0) {
-      const predictionsToSave: MenstruationPrediction[] = generatedPredictions.map(pred => ({
-        predicted_date: pred.date,
-        prediction_type: pred.type,
-        confidence_score: pred.confidence,
-        based_on_months: lookbackMonths,
-        cycle_average: cycleData.averageCycle,
-        duration_average: cycleData.averageDuration
-      }));
+  const predictionsToSave: MenstruationPrediction[] = generatedPredictions.map(pred => ({
+  predicted_date: pred.predicted_date,
+  prediction_type: pred.prediction_type,
+  confidence_score: pred.confidence,
+  based_on_months: lookbackMonths,
+  cycle_average: cycleData.averageCycle,
+  duration_average: cycleData.averageDuration
+}));
       
       savePredictionsMutation.mutate(predictionsToSave);
     }

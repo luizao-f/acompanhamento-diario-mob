@@ -175,12 +175,20 @@ export const getPredictionSettings = async () => {
 };
 
 // Função para salvar predições (ATUALIZADA)
+// Em supabase.ts, atualize a função savePredictions:
 export const savePredictions = async (predictions: Omit<MenstruationPrediction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]) => {
   try {
     if (predictions.length === 0) {
       console.log('No predictions to save');
       return [];
     }
+
+    // FILTRAR apenas tipos válidos
+    const validPredictions = predictions.filter(pred => 
+      ['menstruation', 'ovulation', 'fertile'].includes(pred.prediction_type)
+    );
+
+    console.log('Predições válidas:', validPredictions.length, 'de', predictions.length);
 
     // Deletar todas as predições futuras
     const today = new Date().toISOString().split('T')[0];
@@ -196,8 +204,8 @@ export const savePredictions = async (predictions: Omit<MenstruationPrediction, 
       throw deleteError;
     }
 
-    // Adicionar timestamps e remover user_id
-    const predictionsWithTimestamps = predictions.map(pred => ({
+    // Adicionar timestamps
+    const predictionsWithTimestamps = validPredictions.map(pred => ({
       ...pred,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -215,7 +223,7 @@ export const savePredictions = async (predictions: Omit<MenstruationPrediction, 
       throw error;
     }
     
-    console.log('Predictions saved successfully:', predictionsWithTimestamps.length);
+    console.log('Predictions saved successfully');
     return data || [];
   } catch (error) {
     console.error('Error saving predictions:', error);

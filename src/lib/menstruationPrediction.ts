@@ -25,13 +25,24 @@ export interface CorrectionData {
   corrected_date: string;
 }
 
+// Em menstruationPrediction.ts, na função calculateCycleData:
 export const calculateCycleData = (billingData: BillingData[], lookbackMonths: number = 6): CycleData => {
-  const cutoffDate = new Date();
-  cutoffDate.setMonth(cutoffDate.getMonth() - lookbackMonths);
-
+  console.log('=== CALCULANDO DADOS DO CICLO ===');
+  console.log('Total de dados recebidos:', billingData.length);
+  
+  // IMPORTANTE: Use a data atual real, não do futuro
+  const today = new Date();
+  const cutoffDate = new Date(today.getFullYear(), today.getMonth() - lookbackMonths, 1);
+  console.log('Data de corte:', format(cutoffDate, 'yyyy-MM-dd'));
+  
   const menstruationData = billingData
-    .filter(data => data.menstruacao && data.menstruacao !== 'sem_sangramento')
-    .filter(data => new Date(data.date) >= cutoffDate)
+    .filter(data => {
+      const hasM = data.menstruacao && data.menstruacao !== 'sem_sangramento';
+      const dataDate = new Date(data.date);
+      const isAfterCutoff = dataDate >= cutoffDate;
+      const isBeforeToday = dataDate <= today; // Não incluir dados futuros
+      return hasM && isAfterCutoff && isBeforeToday;
+    })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   if (menstruationData.length === 0) {
@@ -84,56 +95,61 @@ export const calculateCycleData = (billingData: BillingData[], lookbackMonths: n
   return { averageCycle, averageDuration, periods };
 };
 
+// src/lib/menstruationPrediction.ts
+// SUBSTITUA a função generatePredictions por esta versão corrigida:
+
 export const generatePredictions = (cycleData: CycleData, months: number = 6): PredictionData[] => {
+  console.log('=== GERANDO PREDIÇÕES ===');
+  console.log('Ciclo médio:', cycleData.averageCycle);
+  console.log('Duração média:', cycleData.averageDuration);
+  console.log('Períodos encontrados:', cycleData.periods);
+  
   const predictions: PredictionData[] = [];
   const { averageCycle, averageDuration, periods } = cycleData;
-
-  if (periods.length === 0) return predictions;
+  
+  if (periods.length === 0) {
+    console.log('ERRO: Nenhum período encontrado!');
+    return predictions;
+  }
 
   // Começar a partir do último período conhecido
   const lastPeriod = periods[periods.length - 1];
+  console.log('Último período:', lastPeriod.startDate);
+  
   let nextPeriodStart = addDays(new Date(lastPeriod.startDate), averageCycle);
-
+  console.log('Próxima menstruação prevista:', format(nextPeriodStart, 'yyyy-MM-dd'));
+  
   // Gerar predições para os próximos X meses
   const endDate = addMonths(new Date(), months);
-
+  
   while (nextPeriodStart <= endDate) {
     // Predizer período menstrual
     for (let day = 0; day < averageDuration; day++) {
       const predictionDate = addDays(nextPeriodStart, day);
       predictions.push({
-        predicted_date: format(predictionDate, 'yyyy-MM-dd'),
-        prediction_type: 'menstruation',
+        date: format(predictionDate, 'yyyy-MM-dd'),
+        type: 'menstruation', // REMOVIDO 'end_menstruation' que estava causando erro
         isPrediction: true,
         confidence: 0.8
       });
     }
 
-    // Predizer fim da menstruação (opcional, pode ser útil para o calendário)
-    const endMenstruationDate = addDays(nextPeriodStart, averageDuration - 1);
-    predictions.push({
-      predicted_date: format(endMenstruationDate, 'yyyy-MM-dd'),
-      prediction_type: 'end_menstruation',
-      isPrediction: true,
-      confidence: 0.7
-    });
-
     // Predizer ovulação (meio do ciclo)
     const ovulationDay = addDays(nextPeriodStart, Math.floor(averageCycle / 2));
     predictions.push({
-      predicted_date: format(ovulationDay, 'yyyy-MM-dd'),
-      prediction_type: 'ovulation',
+      date: format(ovulationDay, 'yyyy-MM-dd'),
+      type: 'ovulation',
       isPrediction: true,
       confidence: 0.7
     });
 
     // Predizer dias férteis (3 dias antes e depois da ovulação)
     for (let day = -3; day <= 3; day++) {
-      if (day !== 0) { // Não incluir o dia da ovulação de novo
+      if (day !== 0) { // Não incluir o dia da ovulação
         const fertileDay = addDays(ovulationDay, day);
         predictions.push({
-          predicted_date: format(fertileDay, 'yyyy-MM-dd'),
-          prediction_type: 'fertile',
+          date: format(fertileDay, 'yyyy-MM-dd'),
+          type: 'fertile',
           isPrediction: true,
           confidence: 0.6
         });
@@ -144,6 +160,7 @@ export const generatePredictions = (cycleData: CycleData, months: number = 6): P
     nextPeriodStart = addDays(nextPeriodStart, averageCycle);
   }
 
+  console.log('Predições geradas:', predictions.length);
   return predictions;
 };
 

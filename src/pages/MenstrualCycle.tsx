@@ -141,7 +141,7 @@ const { data: historicalData = [] } = useQuery({
   // Salvar predições quando forem geradas
   useEffect(() => {
     if (generatedPredictions.length > 0 && cycleData.periods.length > 0) {
-  const predictionsToSave: MenstruationPrediction[] = generatedPredictions.map(pred => ({
+const predictionsToSave: MenstruationPrediction[] = generatedPredictions.map(pred => ({
   predicted_date: pred.predicted_date,
   prediction_type: pred.prediction_type,
   confidence_score: pred.confidence,

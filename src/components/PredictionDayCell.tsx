@@ -31,14 +31,14 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
   const hasOvulation = predictions.some(pred => pred.type === 'ovulation');
   const hasFertileDays = predictions.some(pred => pred.type === 'fertile');
   
-  // Determinar cor de fundo
+  // Determinar cor de fundo baseado na lógica descrita
   const getBackgroundColor = () => {
     // Se tem menstruação confirmada (dados reais)
     if (hasMenstruation) {
       return 'bg-red-500 text-white';
     }
     
-    // Se tem predição de menstruação (e ainda não tem dados reais)
+    // Se tem predição de menstruação mas não tem dados reais ainda
     if (hasPredictedMenstruation && !billingData) {
       return 'bg-red-400 text-white';
     }
@@ -56,24 +56,24 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
     return '';
   };
 
-  // Determinar cor da barra inferior
+  // Determinar cor da barra inferior baseado na comparação
   const getBarColor = () => {
-    // SÓ mostrar barra de erro se houver comparação (ou seja, dados reais para comparar)
-    if (comparison) {
-      // Falso positivo: previu mas não aconteceu (atraso)
-      if (comparison.type === 'false_positive') {
-        return 'bg-orange-500';
+    if (!comparison) {
+      // Se ainda não há dados reais, mas tem predição
+      if (hasPredictedMenstruation && !billingData) {
+        return 'bg-red-600';
       }
-      
-      // Falso negativo: não previu mas aconteceu (antecipação)
-      if (comparison.type === 'false_negative') {
-        return 'bg-black';
-      }
+      return '';
     }
     
-    // Barra vermelha forte APENAS para predições futuras (sem dados reais ainda)
-    if (hasPredictedMenstruation && !billingData) {
-      return 'bg-red-600';
+    // Falso positivo: sistema previu menstruação mas não aconteceu (atraso)
+    if (comparison.type === 'false_positive') {
+      return 'bg-orange-500';
+    }
+    
+    // Falso negativo: sistema não previu mas aconteceu (antecipação)
+    if (comparison.type === 'false_negative') {
+      return 'bg-black';
     }
     
     return '';
@@ -120,7 +120,7 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
           <div className="text-xs text-green-700">Fértil</div>
         )}
         
-        {/* Mostrar tipo de erro APENAS se houver comparação com erro */}
+        {/* Mostrar tipo de erro se houver comparação */}
         {comparison && (comparison.type === 'false_positive' || comparison.type === 'false_negative') && (
           <div className="text-xs mt-1">
             {comparison.type === 'false_positive' ? 

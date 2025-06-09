@@ -1,3 +1,4 @@
+// src/lib/supabase.ts
 
 import { supabase } from '@/integrations/supabase/client';
 
@@ -11,6 +12,38 @@ export interface BillingData {
   observacoes?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+// Interfaces para as novas tabelas
+export interface PredictionSettings {
+  id?: string;
+  user_id?: string;
+  lookback_months: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MenstruationPrediction {
+  id?: string;
+  user_id?: string;
+  predicted_date: string;
+  prediction_type: 'menstruation' | 'ovulation' | 'fertile';
+  confidence_score?: number;
+  based_on_months?: number;
+  cycle_average?: number;
+  duration_average?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MenstruationCorrection {
+  id?: string;
+  user_id?: string;
+  correction_date: string;
+  correction_type: 'false_positive' | 'false_negative';
+  original_prediction: boolean;
+  actual_result: boolean;
+  created_at?: string;
 }
 
 export const getBillingData = async (date: string): Promise<BillingData | null> => {
@@ -78,6 +111,124 @@ export const saveBillingData = async (data: Omit<BillingData, 'id' | 'created_at
   } catch (error) {
     console.error('Error saving billing data:', error);
     throw error;
+  }
+};
+
+// Função para salvar configurações de predição
+export const savePredictionSettings = async (lookbackMonths: number) => {
+  try {
+    const { data, error } = await supabase
+      .from('prediction_settings')
+      .upsert({ 
+        lookback_months: lookbackMonths,
+        updated_at: new Date().toISOString()
+      }, { 
+        onConflict: 'user_id' 
+      });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error saving prediction settings:', error);
+    throw error;
+  }
+};
+
+// Função para buscar configurações de predição
+export const getPredictionSettings = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('prediction_settings')
+      .select('*')
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching prediction settings:', error);
+    return null;
+  }
+};
+
+// Função para salvar predições
+export const savePredictions = async (predictions: MenstruationPrediction[]) => {
+  try {
+    // Primeiro, deletar predições antigas futuras
+    const today = new Date().toISOString().split('T')[0];
+    const { error: deleteError } = await supabase
+      .from('menstruation_predictions')
+      .delete()
+      .gte('predicted_date', today);
+
+    if (deleteError) throw deleteError;
+
+    // Inserir novas predições
+    if (predictions.length > 0) {
+      const { data, error } = await supabase
+        .from('menstruation_predictions')
+        .insert(predictions);
+
+      if (error) throw error;
+      return data;
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Error saving predictions:', error);
+    throw error;
+  }
+};
+
+// Função para buscar predições
+export const getPredictions = async (startDate: string, endDate: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('menstruation_predictions')
+      .select('*')
+      .gte('predicted_date', startDate)
+      .lte('predicted_date', endDate)
+      .order('predicted_date');
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching predictions:', error);
+    return [];
+  }
+};
+
+// Função para salvar correção
+export const saveCorrection = async (correction: Omit<MenstruationCorrection, 'id' | 'created_at'>) => {
+  try {
+    const { data, error } = await supabase
+      .from('menstruation_corrections')
+      .upsert(correction, { 
+        onConflict: 'correction_date' 
+      });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error saving correction:', error);
+    throw error;
+  }
+};
+
+// Função para buscar correções
+export const getCorrections = async (startDate: string, endDate: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('menstruation_corrections')
+      .select('*')
+      .gte('correction_date', startDate)
+      .lte('correction_date', endDate)
+      .order('correction_date');
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching corrections:', error);
+    return [];
   }
 };
 

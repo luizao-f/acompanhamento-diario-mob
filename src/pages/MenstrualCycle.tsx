@@ -149,7 +149,8 @@ const predictionsToSave: MenstruationPrediction[] = generatedPredictions.map(pre
   cycle_average: cycleData.averageCycle,
   duration_average: cycleData.averageDuration
 }));
-      
+      console.log("DEBUG tipos enviados:", predictionsToSave.map(p => p.prediction_type));
+console.log("DEBUG predições completas:", predictionsToSave);
       savePredictionsMutation.mutate(predictionsToSave);
     }
   }, [generatedPredictions, cycleData, lookbackMonths]);

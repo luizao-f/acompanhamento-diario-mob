@@ -71,13 +71,13 @@ const MenstrualCycle = () => {
   }, [cycleData]);
 
   // --- USEEFFECT PARA SALVAR AS PREDIÇÕES NO BANCO ---
-  useEffect(() => {
-    if (!allPredictions || allPredictions.length === 0) return;
-    // Salva as predições no banco Supabase
-    savePredictions(allPredictions).catch(err => {
-      console.error("Erro ao salvar predições no banco:", err);
-    });
-  }, [allPredictions]);
+useEffect(() => {
+  console.log("Rodando useEffect para salvar predições", allPredictions);
+  if (!allPredictions || allPredictions.length === 0) return;
+  savePredictions(allPredictions).catch(err => {
+    console.error("Erro ao salvar predições no banco:", err);
+  });
+}, [allPredictions]);
   // ---------------------------------------------------
 
   // Filtrar predições do mês atual

@@ -1,10 +1,8 @@
-// src/components/PredictionDayCell.tsx
 import React from 'react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { BillingData } from '@/lib/supabase';
-import { PredictionData } from '@/lib/menstruationPrediction';
-import { PredictionComparison } from '@/lib/predictionTracking';
+import { PredictionData, CorrectionData } from '@/lib/menstruationPrediction';
 import { Heart, Droplets } from 'lucide-react';
 
 interface PredictionDayCellProps {
@@ -13,7 +11,7 @@ interface PredictionDayCellProps {
   isToday: boolean;
   billingData?: BillingData;
   predictions: PredictionData[];
-  comparison?: PredictionComparison;
+  correction?: CorrectionData;
   onClick: () => void;
 }
 
@@ -23,63 +21,58 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
   isToday,
   billingData,
   predictions,
-  comparison,
+  correction,
   onClick
 }) => {
   const hasMenstruation = billingData?.menstruacao && billingData.menstruacao !== 'sem_sangramento';
-  const hasPredictedMenstruation = predictions.some(pred => pred.type === 'menstruation');
+  const hasPredictedMenstruation = predictions.some(pred => pred.predicted === true);
   const hasOvulation = predictions.some(pred => pred.type === 'ovulation');
   const hasFertileDays = predictions.some(pred => pred.type === 'fertile');
-  
+
   // Determinar cor de fundo baseado na lógica descrita
   const getBackgroundColor = () => {
-    // Se tem menstruação confirmada (dados reais)
     if (hasMenstruation) {
       return 'bg-red-500 text-white';
     }
-    
-    // Se tem predição de menstruação mas não tem dados reais ainda
-    if (hasPredictedMenstruation && !billingData) {
+    if (hasPredictedMenstruation && !hasMenstruation) {
       return 'bg-red-400 text-white';
     }
-    
-    // Se tem ovulação prevista
     if (hasOvulation) {
       return 'bg-blue-100';
     }
-    
-    // Se tem dias férteis previstos
     if (hasFertileDays) {
       return 'bg-green-100';
     }
-    
     return '';
   };
 
-  // Determinar cor da barra inferior baseado na comparação
+  // Determinar cor e barra inferior baseado em correções do banco
   const getBarColor = () => {
-    if (!comparison) {
-      // Se ainda não há dados reais, mas tem predição
-      if (hasPredictedMenstruation && !billingData) {
-        return 'bg-red-600';
+    if (correction) {
+      if (correction.type === 'delay') {
+        return 'bg-orange-500'; // Barra laranja para atraso
       }
-      return '';
+      if (correction.type === 'anticipation') {
+        return 'bg-black'; // Barra preta para antecipação
+      }
     }
-    
-    // Falso positivo: sistema previu menstruação mas não aconteceu (atraso)
-    if (comparison.type === 'false_positive') {
-      return 'bg-orange-500';
+    if (hasPredictedMenstruation && !hasMenstruation) {
+      // Só mostra barra vermelha forte se for predição futura e não tiver correção
+      return 'bg-red-600';
     }
-    
-    // Falso negativo: sistema não previu mas aconteceu (antecipação)
-    if (comparison.type === 'false_negative') {
-      return 'bg-black';
+    return '';
+  };
+
+  const getBarLabel = () => {
+    if (correction) {
+      if (correction.type === 'delay') return 'Atraso';
+      if (correction.type === 'anticipation') return 'Antecipação';
     }
-    
     return '';
   };
 
   const barColor = getBarColor();
+  const barLabel = getBarLabel();
 
   return (
     <div
@@ -98,7 +91,7 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
         )}>
           {format(day, 'd')}
         </div>
-        
+
         {/* Ícones de dados reais */}
         <div className="flex flex-wrap gap-1 flex-1">
           {billingData?.relacao_sexual && (
@@ -119,21 +112,15 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
         {hasFertileDays && !hasOvulation && (
           <div className="text-xs text-green-700">Fértil</div>
         )}
-        
-        {/* Mostrar tipo de erro se houver comparação */}
-        {comparison && (comparison.type === 'false_positive' || comparison.type === 'false_negative') && (
-          <div className="text-xs mt-1">
-            {comparison.type === 'false_positive' ? 
-              <span className="text-orange-600 font-medium">Atraso</span> : 
-              <span className="text-black font-medium">Antecipação</span>
-            }
-          </div>
-        )}
       </div>
 
       {/* Barra inferior para predições e correções */}
       {barColor && (
-        <div className={cn("absolute bottom-0 left-0 right-0 h-1", barColor)} />
+        <div className={cn("absolute bottom-0 left-0 right-0 h-1 flex items-center justify-center", barColor)}>
+          {barLabel && (
+            <span className="text-[10px] ml-1 text-white font-bold">{barLabel}</span>
+          )}
+        </div>
       )}
     </div>
   );

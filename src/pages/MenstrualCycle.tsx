@@ -1,5 +1,5 @@
 // src/pages/MenstrualCycle.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ import {
 import PredictionCalendarGrid from '@/components/PredictionCalendarGrid';
 import MonthInsights from '@/components/MonthInsights';
 import PredictionSettings from '@/components/PredictionSettings';
+import { savePredictions } from '@/lib/predictionsSupabase'; // <-- IMPORTAÇÃO ADICIONADA
 
 const MenstrualCycle = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -68,6 +69,16 @@ const MenstrualCycle = () => {
     console.log('Gerando predições baseado em:', cycleData);
     return generatePredictions(cycleData, 6);
   }, [cycleData]);
+
+  // --- USEEFFECT PARA SALVAR AS PREDIÇÕES NO BANCO ---
+  useEffect(() => {
+    if (!allPredictions || allPredictions.length === 0) return;
+    // Salva as predições no banco Supabase
+    savePredictions(allPredictions).catch(err => {
+      console.error("Erro ao salvar predições no banco:", err);
+    });
+  }, [allPredictions]);
+  // ---------------------------------------------------
 
   // Filtrar predições do mês atual
   const currentMonthPredictions = allPredictions.filter(pred => {

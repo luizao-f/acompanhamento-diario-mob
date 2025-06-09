@@ -1,7 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import { supabase } from "@/integrations/supabase/client";
 
 export interface MenstruationCorrection {
   id: string;
@@ -19,8 +16,6 @@ export interface MenstruationCorrection {
  * @returns Promise<MenstruationCorrection[]>
  */
 export async function fetchMenstruationCorrections(userId: string): Promise<MenstruationCorrection[]> {
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
   const { data, error } = await supabase
     .from('menstruation_corrections')
     .select('*')

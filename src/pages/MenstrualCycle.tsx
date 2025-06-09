@@ -1,20 +1,25 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { format, addMonths, subMonths } from 'date-fns';
+// src/pages/MenstrualCycle.tsx
+import React, { useState, useMemo } from 'react';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, LogOut, Calendar as CalendarIcon, ArrowLeft } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getBillingDataForMonth, getPredictionsForMonth, savePredictions, getCorrectionsForMonth, saveCorrection } from '@/lib/supabase';
+import { useQuery } from '@tanstack/react-query';
+import { getBillingDataForMonth } from '@/lib/supabase';
 import { 
   calculateCycleData, 
   generatePredictions, 
-  calculateMonthInsights,
   PredictionData,
   CorrectionData 
 } from '@/lib/menstruationPrediction';
+import { 
+  comparePredictionsWithActual, 
+  calculateDelaysAndAnticipations,
+  calculatePredictionAccuracy 
+} from '@/lib/predictionTracking';
 import PredictionCalendarGrid from '@/components/PredictionCalendarGrid';
 import MonthInsights from '@/components/MonthInsights';
 import PredictionSettings from '@/components/PredictionSettings';
@@ -22,14 +27,10 @@ import PredictionSettings from '@/components/PredictionSettings';
 const MenstrualCycle = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [lookbackMonths, setLookbackMonths] = useState(6);
-  const [corrections, setCorrections] = useState<CorrectionData[]>([]);
-  const [predictions, setPredictions] = useState<PredictionData[]>([]);
   const { logout } = useAuth();
 
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
-
-  const queryClient = useQueryClient();
 
   // Buscar dados históricos para cálculo das predições
   const { data: historicalData = [] } = useQuery({
@@ -38,13 +39,15 @@ const MenstrualCycle = () => {
       const data = [];
       const startDate = new Date();
       startDate.setMonth(startDate.getMonth() - lookbackMonths);
-
+      
+      // Buscar dados dos últimos X meses + próximos 6 meses para visualização
       for (let i = -lookbackMonths; i <= 6; i++) {
         const date = new Date();
         date.setMonth(date.getMonth() + i);
         const monthData = await getBillingDataForMonth(date.getFullYear(), date.getMonth());
         data.push(...monthData);
       }
+      console.log('Dados históricos carregados:', data.length, 'registros');
       return data;
     },
   });
@@ -55,58 +58,73 @@ const MenstrualCycle = () => {
     queryFn: () => getBillingDataForMonth(currentYear, currentMonth),
   });
 
-  // Buscar predições do mês atual (do banco)
-  useEffect(() => {
-    async function fetchPredictions() {
-      const preds = await getPredictionsForMonth(currentYear, currentMonth);
-      setPredictions(preds);
-    }
-    fetchPredictions();
-  }, [currentYear, currentMonth]);
-
-  // Buscar correções do mês atual (do banco)
-  useEffect(() => {
-    async function fetchCorrections() {
-      const corr = await getCorrectionsForMonth(currentYear, currentMonth);
-      setCorrections(corr);
-    }
-    fetchCorrections();
-  }, [currentYear, currentMonth]);
-
-  // Calcular dados do ciclo e predições "do frontend" (opcional, pode usar para calcular novas predições)
+  // Calcular dados do ciclo e predições
   const cycleData = useMemo(() => {
+    console.log('Calculando dados do ciclo com', historicalData.length, 'registros');
     return calculateCycleData(historicalData, lookbackMonths);
   }, [historicalData, lookbackMonths]);
 
-  // Gerar predições para o mês atual se não tiver no banco (apenas se necessário)
-  useEffect(() => {
-    async function maybeGeneratePredictions() {
-      if (predictions.length === 0 && cycleData && cycleData.periods.length > 0) {
-        const generated = generatePredictions(cycleData, 6).filter(pred => {
-          const predDate = new Date(pred.date);
-          return predDate.getFullYear() === currentYear && predDate.getMonth() === currentMonth;
-        });
-        if (generated.length > 0) {
-          await savePredictions(generated);
-          setPredictions(generated);
-          queryClient.invalidateQueries(['predictions', currentYear, currentMonth]);
-        }
-      }
-    }
-    maybeGeneratePredictions();
-    // eslint-disable-next-line
-  }, [predictions, cycleData, currentYear, currentMonth]);
+  const allPredictions = useMemo(() => {
+    console.log('Gerando predições baseado em:', cycleData);
+    return generatePredictions(cycleData, 6);
+  }, [cycleData]);
+
+  // Filtrar predições do mês atual
+  const currentMonthPredictions = allPredictions.filter(pred => {
+    const predDate = new Date(pred.date);
+    return predDate.getFullYear() === currentYear && predDate.getMonth() === currentMonth;
+  });
+
+  // Comparar predições com dados reais
+  const comparisons = useMemo(() => {
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    return comparePredictionsWithActual(
+      currentMonthPredictions,
+      currentMonthData,
+      monthStart,
+      monthEnd
+    );
+  }, [currentMonthPredictions, currentMonthData, currentDate]);
+
+  // Calcular atrasos e antecipações
+  const { delays, anticipations } = useMemo(() => {
+    return calculateDelaysAndAnticipations(allPredictions, historicalData);
+  }, [allPredictions, historicalData]);
+
+  // Filtrar atrasos e antecipações do mês atual
+  const currentMonthDelays = delays.filter(d => {
+    const date = new Date(d.date);
+    return date.getFullYear() === currentYear && date.getMonth() === currentMonth;
+  });
+
+  const currentMonthAnticipations = anticipations.filter(a => {
+    const date = new Date(a.date);
+    return date.getFullYear() === currentYear && date.getMonth() === currentMonth;
+  });
+
+  // Calcular métricas de precisão
+  const accuracy = useMemo(() => {
+    return calculatePredictionAccuracy(comparisons, currentMonthDelays, currentMonthAnticipations);
+  }, [comparisons, currentMonthDelays, currentMonthAnticipations]);
 
   // Calcular insights do mês
   const monthInsights = useMemo(() => {
-    return calculateMonthInsights(
-      currentYear, 
-      currentMonth, 
-      currentMonthData, 
-      predictions, 
-      corrections
-    );
-  }, [currentYear, currentMonth, currentMonthData, predictions, corrections]);
+    // Contar dias de menstruação reais
+    const actualMenstruationDays = currentMonthData.filter(data => 
+      data.menstruacao && data.menstruacao !== 'sem_sangramento'
+    ).length;
+
+    return {
+      menstruationDays: actualMenstruationDays,
+      predictedDays: currentMonthPredictions.filter(p => p.type === 'menstruation').length,
+      delays: currentMonthDelays.length,
+      anticipations: currentMonthAnticipations.length,
+      accuracy: accuracy.accuracy.toFixed(1),
+      delayDays: currentMonthDelays.reduce((sum, d) => sum + d.days, 0),
+      anticipationDays: currentMonthAnticipations.reduce((sum, a) => sum + a.days, 0)
+    };
+  }, [currentMonthData, currentMonthPredictions, currentMonthDelays, currentMonthAnticipations, accuracy]);
 
   const handlePreviousMonth = () => {
     setCurrentDate(subMonths(currentDate, 1));
@@ -132,29 +150,10 @@ const MenstrualCycle = () => {
     setCurrentDate(newDate);
   };
 
-  // Edita/corrige uma previsão manualmente (ao clicar no dia)
-  const handleDayClick = async (day: Date, hasData: boolean, isPrediction: boolean) => {
+  const handleDayClick = (day: Date, hasData: boolean, isPrediction: boolean) => {
     const dayString = format(day, 'yyyy-MM-dd');
-    // Exemplo: se não havia menstruação prevista, mas usuário marca, salva antecipação
-    if (isPrediction && !hasData) {
-      // Salva antecipação
-      await saveCorrection({
-        date: dayString,
-        type: 'anticipation',
-        corrected_date: dayString,
-      });
-    }
-    // Exemplo: se havia previsão mas não ocorreu, salva atraso
-    if (!isPrediction && hasData) {
-      await saveCorrection({
-        date: dayString,
-        type: 'delay',
-        corrected_date: dayString,
-      });
-    }
-    // Atualiza correções após ação manual
-    const corr = await getCorrectionsForMonth(currentYear, currentMonth);
-    setCorrections(corr);
+    console.log('Clicou no dia:', dayString, { hasData, isPrediction });
+    // TODO: Implementar modal para editar correções
   };
 
   const handleLookbackChange = (months: number) => {
@@ -284,11 +283,11 @@ const MenstrualCycle = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-1 bg-orange-500"></div>
-                <span>Atraso (corrigido)</span>
+                <span>Atraso (previsto mas não ocorreu)</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-1 bg-black"></div>
-                <span>Antecipação (corrigido)</span>
+                <span>Antecipação (não previsto mas ocorreu)</span>
               </div>
             </div>
           </div>
@@ -299,8 +298,8 @@ const MenstrualCycle = () => {
           <PredictionCalendarGrid
             currentDate={currentDate}
             billingData={currentMonthData}
-            predictions={predictions}
-            corrections={corrections}
+            predictions={currentMonthPredictions}
+            comparisons={comparisons}
             onDayClick={handleDayClick}
           />
         </div>

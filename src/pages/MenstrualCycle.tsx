@@ -1,4 +1,3 @@
-// src/pages/MenstrualCycle.tsx
 import React, { useState, useMemo, useEffect } from 'react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -9,84 +8,80 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, LogOut, Calendar as CalendarIcon, ArrowLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
-import { 
-  calculateCycleData, 
-  generatePredictions, 
-  PredictionData,
-  CorrectionData 
+import {
+  calculateCycleData,
+  generatePredictions
 } from '@/lib/menstruationPrediction';
-import { 
-  comparePredictionsWithActual, 
+import {
+  comparePredictionsWithActual,
   calculateDelaysAndAnticipations,
-  calculatePredictionAccuracy 
+  calculatePredictionAccuracy
 } from '@/lib/predictionTracking';
 import PredictionCalendarGrid from '@/components/PredictionCalendarGrid';
 import MonthInsights from '@/components/MonthInsights';
 import PredictionSettings from '@/components/PredictionSettings';
-import { savePredictions } from '@/lib/predictionsSupabase'; // <-- IMPORTAÇÃO ADICIONADA
+import { savePredictions } from '@/lib/predictionsSupabase';
+
+import { fetchMenstruationPredictions } from '@/lib/fetchMenstruationPredictions';
+import { fetchMenstruationCorrections } from '@/lib/fetchMenstruationCorrections';
+import { analyzeCycle } from '@/lib/cycleAnalysis';
 
 const MenstrualCycle = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [lookbackMonths, setLookbackMonths] = useState(6);
-  const { logout } = useAuth();
+
+  // Fallback seguro: evita erro mesmo que useAuth retorne undefined/null.
+const auth = (useAuth() || {}) as { logout?: () => void; user?: any };
+const logout = auth.logout;
+const user = auth.user;
+
+  if (!user) {
+    return <div>Carregando usuário...</div>;
+  }
 
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
-  // Buscar dados históricos para cálculo das predições
+  // ---- Lógica local mantida ----
   const { data: historicalData = [] } = useQuery({
     queryKey: ['historical-billing', lookbackMonths],
     queryFn: async () => {
       const data = [];
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - lookbackMonths);
-      
-      // Buscar dados dos últimos X meses + próximos 6 meses para visualização
       for (let i = -lookbackMonths; i <= 6; i++) {
         const date = new Date();
         date.setMonth(date.getMonth() + i);
         const monthData = await getBillingDataForMonth(date.getFullYear(), date.getMonth());
         data.push(...monthData);
       }
-      console.log('Dados históricos carregados:', data.length, 'registros');
       return data;
     },
   });
 
-  // Buscar dados do mês atual para exibição
   const { data: currentMonthData = [] } = useQuery({
     queryKey: ['billing-month', currentYear, currentMonth],
     queryFn: () => getBillingDataForMonth(currentYear, currentMonth),
   });
 
-  // Calcular dados do ciclo e predições
   const cycleData = useMemo(() => {
-    console.log('Calculando dados do ciclo com', historicalData.length, 'registros');
     return calculateCycleData(historicalData, lookbackMonths);
   }, [historicalData, lookbackMonths]);
 
   const allPredictions = useMemo(() => {
-    console.log('Gerando predições baseado em:', cycleData);
     return generatePredictions(cycleData, 6);
   }, [cycleData]);
 
-  // --- USEEFFECT PARA SALVAR AS PREDIÇÕES NO BANCO ---
-useEffect(() => {
-  console.log("Rodando useEffect para salvar predições", allPredictions);
-  if (!allPredictions || allPredictions.length === 0) return;
-  savePredictions(allPredictions).catch(err => {
-    console.error("Erro ao salvar predições no banco:", err);
-  });
-}, [allPredictions]);
-  // ---------------------------------------------------
+  useEffect(() => {
+    if (!allPredictions || allPredictions.length === 0) return;
+    savePredictions(allPredictions).catch(err => {
+      console.error("Erro ao salvar predições no banco:", err);
+    });
+  }, [allPredictions]);
 
-  // Filtrar predições do mês atual
   const currentMonthPredictions = allPredictions.filter(pred => {
     const predDate = new Date(pred.date);
     return predDate.getFullYear() === currentYear && predDate.getMonth() === currentMonth;
   });
 
-  // Comparar predições com dados reais
   const comparisons = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
@@ -98,12 +93,10 @@ useEffect(() => {
     );
   }, [currentMonthPredictions, currentMonthData, currentDate]);
 
-  // Calcular atrasos e antecipações
   const { delays, anticipations } = useMemo(() => {
     return calculateDelaysAndAnticipations(allPredictions, historicalData);
   }, [allPredictions, historicalData]);
 
-  // Filtrar atrasos e antecipações do mês atual
   const currentMonthDelays = delays.filter(d => {
     const date = new Date(d.date);
     return date.getFullYear() === currentYear && date.getMonth() === currentMonth;
@@ -114,15 +107,12 @@ useEffect(() => {
     return date.getFullYear() === currentYear && date.getMonth() === currentMonth;
   });
 
-  // Calcular métricas de precisão
   const accuracy = useMemo(() => {
     return calculatePredictionAccuracy(comparisons, currentMonthDelays, currentMonthAnticipations);
   }, [comparisons, currentMonthDelays, currentMonthAnticipations]);
 
-  // Calcular insights do mês
   const monthInsights = useMemo(() => {
-    // Contar dias de menstruação reais
-    const actualMenstruationDays = currentMonthData.filter(data => 
+    const actualMenstruationDays = currentMonthData.filter(data =>
       data.menstruacao && data.menstruacao !== 'sem_sangramento'
     ).length;
 
@@ -136,6 +126,55 @@ useEffect(() => {
       anticipationDays: currentMonthAnticipations.reduce((sum, a) => sum + a.days, 0)
     };
   }, [currentMonthData, currentMonthPredictions, currentMonthDelays, currentMonthAnticipations, accuracy]);
+
+  // ---- RESUMO GLOBAL VIA SUPABASE (fetchers) ----
+  const [cycleSummary, setCycleSummary] = useState<any>(null);
+  useEffect(() => {
+    async function loadCycleSummary() {
+      if (!user?.id) {
+        setCycleSummary(null);
+        return;
+      }
+      let predictions = [];
+      let corrections = [];
+      try {
+        predictions = (await fetchMenstruationPredictions(user.id)) ?? [];
+        corrections = (await fetchMenstruationCorrections(user.id)) ?? [];
+      } catch (e) {
+        console.error("Erro ao buscar predictions/corrections", e);
+        setCycleSummary(null);
+        return;
+      }
+
+      // Ajuste dinâmico dos campos (garante compatibilidade com qualquer formato)
+      function getField(obj: any, keys: string[], fallback: any = "") {
+        for (const k of keys) {
+          if (typeof obj[k] !== "undefined") return obj[k];
+        }
+        return fallback;
+      }
+
+      const predictionsToAnalyze = predictions.map((p: any) => ({
+        predicted_date: getField(p, ['predicted_date', 'prediction_date', 'date'], ""),
+        prediction_type: getField(p, ['prediction_type', 'type'], ""),
+        confidence_score: getField(p, ['confidence_score', 'score'], 0),
+      }));
+
+      if (Array.isArray(predictionsToAnalyze) && Array.isArray(corrections)) {
+        try {
+          const summary = analyzeCycle(predictionsToAnalyze, corrections);
+          setCycleSummary(summary);
+        } catch (err) {
+          console.error("Erro ao analisar o ciclo:", err);
+          setCycleSummary(null);
+        }
+      } else {
+        setCycleSummary(null);
+      }
+    }
+    loadCycleSummary();
+  }, [user?.id]);
+  // ---- FIM RESUMO SUPABASE ----
 
   const handlePreviousMonth = () => {
     setCurrentDate(subMonths(currentDate, 1));
@@ -196,7 +235,7 @@ useEffect(() => {
 
         {/* Configurações de Predição */}
         <div className="mb-3">
-          <PredictionSettings 
+          <PredictionSettings
             lookbackMonths={lookbackMonths}
             onLookbackChange={handleLookbackChange}
           />
@@ -222,7 +261,7 @@ useEffect(() => {
             <h2 className="text-xl font-semibold text-primary">
               {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
             </h2>
-            
+
             <div className="flex items-center gap-2">
               <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
                 <SelectTrigger className="w-32">
@@ -258,7 +297,7 @@ useEffect(() => {
 
         {/* Insights do Mês */}
         <div className="mb-3">
-          <MonthInsights 
+          <MonthInsights
             year={currentYear}
             month={currentMonth}
             insights={monthInsights}
@@ -315,7 +354,7 @@ useEffect(() => {
           />
         </div>
 
-        {/* Resumo das Predições */}
+        {/* Resumo das Predições (local) */}
         <div className="mt-3">
           <div className="bg-white rounded-lg shadow-sm p-3">
             <h3 className="text-sm font-medium mb-2 text-gray-700">Resumo das Predições</h3>
@@ -337,6 +376,27 @@ useEffect(() => {
             )}
           </div>
         </div>
+
+        {/* Resumo Global do Ciclo (dados do banco Supabase) */}
+        {cycleSummary && (
+          <div className="mt-3">
+            <div className="bg-white rounded-lg shadow-sm p-3">
+              <h3 className="text-sm font-medium mb-2 text-gray-700">Resumo Global do Ciclo (Banco)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="font-medium">Precisão:</span> {cycleSummary.accuracy}%
+                </div>
+                <div>
+                  <span className="font-medium">Atrasos:</span> {cycleSummary.delays} ({cycleSummary.delayDays} dias)
+                </div>
+                <div>
+                  <span className="font-medium">Antecipações:</span> {cycleSummary.anticipations} ({cycleSummary.anticipationDays} dias)
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

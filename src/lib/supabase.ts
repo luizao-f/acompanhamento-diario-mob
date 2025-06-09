@@ -114,20 +114,43 @@ export const saveBillingData = async (data: Omit<BillingData, 'id' | 'created_at
   }
 };
 
-// Função para salvar configurações de predição
+// Função para salvar configurações de predição (ATUALIZADA)
 export const savePredictionSettings = async (lookbackMonths: number) => {
   try {
-    const { data, error } = await supabase
+    // Primeiro tenta buscar se já existe
+    const { data: existing } = await supabase
       .from('prediction_settings')
-      .upsert({ 
-        lookback_months: lookbackMonths,
-        updated_at: new Date().toISOString()
-      }, { 
-        onConflict: 'user_id' 
-      });
+      .select('*')
+      .limit(1)
+      .single();
 
-    if (error) throw error;
-    return data;
+    if (existing) {
+      // Atualiza o existente
+      const { data, error } = await supabase
+        .from('prediction_settings')
+        .update({ 
+          lookback_months: lookbackMonths,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id);
+
+      if (error) throw error;
+      console.log('Prediction settings updated successfully');
+      return data;
+    } else {
+      // Cria novo sem user_id
+      const { data, error } = await supabase
+        .from('prediction_settings')
+        .insert({ 
+          lookback_months: lookbackMonths,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+      console.log('Prediction settings created successfully');
+      return data;
+    }
   } catch (error) {
     console.error('Error saving prediction settings:', error);
     throw error;
@@ -140,6 +163,7 @@ export const getPredictionSettings = async () => {
     const { data, error } = await supabase
       .from('prediction_settings')
       .select('*')
+      .limit(1)
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
@@ -150,38 +174,60 @@ export const getPredictionSettings = async () => {
   }
 };
 
-// Função para salvar predições
-export const savePredictions = async (predictions: MenstruationPrediction[]) => {
+// Função para salvar predições (ATUALIZADA)
+export const savePredictions = async (predictions: Omit<MenstruationPrediction, 'id' | 'user_id' | 'created_at' | 'updated_at'>[]) => {
   try {
-    // Primeiro, deletar predições antigas futuras
+    if (predictions.length === 0) {
+      console.log('No predictions to save');
+      return [];
+    }
+
+    // Deletar todas as predições futuras
     const today = new Date().toISOString().split('T')[0];
+    console.log('Deleting predictions from:', today);
+    
     const { error: deleteError } = await supabase
       .from('menstruation_predictions')
       .delete()
       .gte('predicted_date', today);
 
-    if (deleteError) throw deleteError;
+    if (deleteError) {
+      console.error('Error deleting old predictions:', deleteError);
+      throw deleteError;
+    }
+
+    // Adicionar timestamps e remover user_id
+    const predictionsWithTimestamps = predictions.map(pred => ({
+      ...pred,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }));
+
+    console.log('Inserting predictions:', predictionsWithTimestamps.length);
 
     // Inserir novas predições
-    if (predictions.length > 0) {
-      const { data, error } = await supabase
-        .from('menstruation_predictions')
-        .insert(predictions);
+    const { data, error } = await supabase
+      .from('menstruation_predictions')
+      .insert(predictionsWithTimestamps);
 
-      if (error) throw error;
-      return data;
+    if (error) {
+      console.error('Error inserting predictions:', error);
+      throw error;
     }
     
-    return [];
+    console.log('Predictions saved successfully:', predictionsWithTimestamps.length);
+    return data || [];
   } catch (error) {
     console.error('Error saving predictions:', error);
     throw error;
   }
 };
 
-// Função para buscar predições
+// Função para buscar predições (ATUALIZADA)
 export const getPredictions = async (startDate: string, endDate: string) => {
   try {
+    console.log('Fetching predictions from', startDate, 'to', endDate);
+    
     const { data, error } = await supabase
       .from('menstruation_predictions')
       .select('*')
@@ -190,6 +236,8 @@ export const getPredictions = async (startDate: string, endDate: string) => {
       .order('predicted_date');
 
     if (error) throw error;
+    
+    console.log('Found predictions:', data?.length || 0);
     return data || [];
   } catch (error) {
     console.error('Error fetching predictions:', error);
@@ -197,16 +245,22 @@ export const getPredictions = async (startDate: string, endDate: string) => {
   }
 };
 
-// Função para salvar correção
-export const saveCorrection = async (correction: Omit<MenstruationCorrection, 'id' | 'created_at'>) => {
+// Função para salvar correção (ATUALIZADA)
+export const saveCorrection = async (correction: Omit<MenstruationCorrection, 'id' | 'user_id' | 'created_at'>) => {
   try {
+    const correctionWithTimestamp = {
+      ...correction,
+      created_at: new Date().toISOString()
+    };
+
     const { data, error } = await supabase
       .from('menstruation_corrections')
-      .upsert(correction, { 
+      .upsert(correctionWithTimestamp, { 
         onConflict: 'correction_date' 
       });
 
     if (error) throw error;
+    console.log('Correction saved successfully');
     return data;
   } catch (error) {
     console.error('Error saving correction:', error);

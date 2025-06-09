@@ -287,21 +287,37 @@ const MenstrualCycle = () => {
           />
         </div>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handlePreviousMonth}>
-              <ChevronLeft className="h-4 w-4" />
-              Anterior
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleNextMonth}>
-              Próximo
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleTodayClick}>
-              Hoje
-            </Button>
-          </div>
+            {/* Navigation */}
+<div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">
+  <div className="flex items-center gap-2">
+    <Button variant="outline" size="sm" onClick={handlePreviousMonth}>
+      <ChevronLeft className="h-4 w-4" />
+      Anterior
+    </Button>
+    <Button variant="outline" size="sm" onClick={handleNextMonth}>
+      Próximo
+      <ChevronRight className="h-4 w-4" />
+    </Button>
+    <Button variant="outline" size="sm" onClick={handleTodayClick}>
+      Hoje
+    </Button>
+    {/* ADICIONAR AQUI O BOTÃO RECALCULAR */}
+    <Button 
+      variant="outline" 
+      size="sm" 
+      onClick={() => {
+        queryClient.invalidateQueries(['historical-billing']);
+        queryClient.invalidateQueries(['saved-predictions']);
+        queryClient.invalidateQueries(['billing-month']);
+        toast({
+          title: "Recalculando predições",
+          description: "As predições serão recalculadas com os dados mais recentes.",
+        });
+      }}
+    >
+      Recalcular
+    </Button>
+  </div>
 
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-semibold text-primary">

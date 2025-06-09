@@ -96,18 +96,25 @@ export const calculateCycleData = (billingData: BillingData[], lookbackMonths: n
 };
 
 export const generatePredictions = (cycleData: CycleData, months: number = 6): PredictionData[] => {
+  console.log('=== GERANDO PREDIÇÕES ===');
+  console.log('Ciclo médio:', cycleData.averageCycle);
+  console.log('Duração média:', cycleData.averageDuration);
+  console.log('Períodos encontrados:', cycleData.periods);
+  
   const predictions: PredictionData[] = [];
   const { averageCycle, averageDuration, periods } = cycleData;
   
-  console.log('Gerando predições com:', { averageCycle, averageDuration, periodsCount: periods.length });
-  
-  if (periods.length === 0) return predictions;
+  if (periods.length === 0) {
+    console.log('ERRO: Nenhum período encontrado!');
+    return predictions;
+  }
 
   // Começar a partir do último período conhecido
   const lastPeriod = periods[periods.length - 1];
-  let nextPeriodStart = addDays(new Date(lastPeriod.startDate), averageCycle);
+  console.log('Último período:', lastPeriod.startDate);
   
-  console.log('Último período:', lastPeriod.startDate, 'Próximo previsto:', format(nextPeriodStart, 'yyyy-MM-dd'));
+  let nextPeriodStart = addDays(new Date(lastPeriod.startDate), averageCycle);
+  console.log('Próxima menstruação prevista:', format(nextPeriodStart, 'yyyy-MM-dd'));
   
   // Gerar predições para os próximos X meses
   const endDate = addMonths(new Date(), months);

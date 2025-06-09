@@ -54,24 +54,31 @@ const MenstrualCycle = () => {
     }
   });
 
-  // Buscar dados históricos para cálculo das predições
-  const { data: historicalData = [] } = useQuery({
-    queryKey: ['historical-billing', lookbackMonths],
-    queryFn: async () => {
-      const data = [];
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - lookbackMonths);
-      
-      for (let i = -lookbackMonths; i <= 0; i++) {
-        const date = new Date();
-        date.setMonth(date.getMonth() + i);
-        const monthData = await getBillingDataForMonth(date.getFullYear(), date.getMonth());
+// Buscar dados históricos para cálculo das predições
+const { data: historicalData = [] } = useQuery({
+  queryKey: ['historical-billing', lookbackMonths],
+  queryFn: async () => {
+    const data = [];
+    const today = new Date();
+    
+    // Buscar dados dos últimos X meses
+    for (let i = lookbackMonths; i >= 0; i--) {
+      const targetDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthData = await getBillingDataForMonth(targetDate.getFullYear(), targetDate.getMonth());
+      if (monthData.length > 0) {
         data.push(...monthData);
       }
-      console.log('Dados históricos carregados:', data.length, 'registros');
-      return data;
-    },
-  });
+    }
+    
+    console.log('=== DADOS HISTÓRICOS CARREGADOS ===');
+    console.log('Total de registros:', data.length);
+    console.log('Períodos com menstruação:', data.filter(d => d.menstruacao && d.menstruacao !== 'sem_sangramento').length);
+    console.log('Primeiro registro:', data[0]?.date);
+    console.log('Último registro:', data[data.length - 1]?.date);
+    
+    return data;
+  },
+});
 
   // Buscar dados do mês atual
   const { data: currentMonthData = [] } = useQuery({
@@ -302,21 +309,32 @@ const MenstrualCycle = () => {
       Hoje
     </Button>
     {/* ADICIONAR AQUI O BOTÃO RECALCULAR */}
-    <Button 
-      variant="outline" 
-      size="sm" 
-      onClick={() => {
-        queryClient.invalidateQueries(['historical-billing']);
-        queryClient.invalidateQueries(['saved-predictions']);
-        queryClient.invalidateQueries(['billing-month']);
-        toast({
-          title: "Recalculando predições",
-          description: "As predições serão recalculadas com os dados mais recentes.",
-        });
-      }}
-    >
-      Recalcular
-    </Button>
+<Button 
+  variant="outline" 
+  size="sm" 
+  onClick={async () => {
+    // Limpar TODAS as queries
+    await queryClient.invalidateQueries();
+    
+    // Forçar refetch
+    queryClient.refetchQueries(['historical-billing']);
+    queryClient.refetchQueries(['saved-predictions']);
+    queryClient.refetchQueries(['billing-month']);
+    
+    toast({
+      title: "Cache limpo",
+      description: "Recarregando todos os dados...",
+    });
+    
+    // Recarregar a página após 1 segundo
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  }}
+>
+  Recalcular
+</Button>
+
   </div>
 
           <div className="flex items-center gap-4">

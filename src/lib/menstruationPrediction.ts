@@ -105,7 +105,7 @@ export const generatePredictions = (cycleData: CycleData, months: number = 6): P
 
   // Começar a partir do último período conhecido
   const lastPeriod = periods[periods.length - 1];
-  let nextPeriodStart = addDays(new Date(lastPeriod.startDate), averageCycle);
+  let nextPeriodStart = addDays(new Date(lastPeriod.endDate), 1);
   
   console.log('Último período:', lastPeriod.startDate, 'Próximo previsto:', format(nextPeriodStart, 'yyyy-MM-dd'));
   

@@ -1,6 +1,6 @@
 // src/pages/MenstrualCycle.tsx
 import React, { useState, useMemo, useEffect } from 'react';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { format, addDays, addMonths, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -60,10 +60,36 @@ const MenstrualCycle = () => {
   });
 
   // Calcular dados do ciclo e predições
-  const cycleData = useMemo(() => {
-    console.log('Calculando dados do ciclo com', historicalData.length, 'registros');
-    return calculateCycleData(historicalData, lookbackMonths);
-  }, [historicalData, lookbackMonths]);
+const cycleData = useMemo(() => {
+  console.log('=== MENSTRUAL CYCLE PAGE DEBUG ===');
+  console.log('Historical data length:', historicalData.length);
+  console.log('Lookback months:', lookbackMonths);
+  console.log('Historical data sample:', historicalData.slice(0, 5));
+  
+  console.log('Calculando dados do ciclo com', historicalData.length, 'registros');
+  const result = calculateCycleData(historicalData, lookbackMonths);
+  
+  console.log('Resultado do cálculo do ciclo:');
+  console.log('- Ciclo médio:', result.averageCycle, 'dias');
+  console.log('- Duração média:', result.averageDuration, 'dias');
+  console.log('- Períodos encontrados:', result.periods.length);
+  
+  if (result.periods.length > 0) {
+    const lastPeriod = result.periods[result.periods.length - 1];
+    console.log('- Último período:');
+    console.log('  - Início:', lastPeriod.startDate);
+    console.log('  - Fim:', lastPeriod.endDate);
+    console.log('  - Duração:', lastPeriod.duration, 'dias');
+    
+    // Calcular manualmente quando deveria ser a próxima menstruação
+    const lastStart = new Date(lastPeriod.startDate);
+    const expectedNext = addDays(lastStart, result.averageCycle);
+    console.log('- Próxima menstruação esperada:', format(expectedNext, 'yyyy-MM-dd'));
+  }
+  
+  console.log('=== FIM MENSTRUAL CYCLE PAGE DEBUG ===');
+  return result;
+}, [historicalData, lookbackMonths]);
 
   const allPredictions = useMemo(() => {
     console.log('Gerando predições baseado em:', cycleData);

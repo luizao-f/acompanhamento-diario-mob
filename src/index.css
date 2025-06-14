@@ -1,98 +1,76 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Nova definição do design system com temática feminina e natural */
-
 @layer base {
   :root {
-    /* Paleta de cores feminina e natural */
-    --background: 253 252 251; /* creme suave */
-    --foreground: 91 64 48; /* marrom terroso */
+    /* Paleta natural e feminina */
+    --background: 252 249 246; /* creme quente */
+    --foreground: 78 56 45; /* marrom terroso suave */
 
-    --card: 255 253 252; /* branco suave */
-    --card-foreground: 91 64 48;
+    --card: 255 252 248; /* off-white suave */
+    --card-foreground: 78 56 45;
 
-    --popover: 255 253 252;
-    --popover-foreground: 91 64 48;
+    --popover: 255 252 248;
+    --popover-foreground: 78 56 45;
 
-    /* Rosa suave como primária */
-    --primary: 205 133 149; /* rosê */
-    --primary-foreground: 255 253 252;
+    /* Rosa suave e natural */
+    --primary: 201 129 139; /* rosa terroso */
+    --primary-foreground: 255 252 248;
 
-    /* Verde oliva como secundária */
-    --secondary: 158 164 134; /* verde oliva suave */
-    --secondary-foreground: 91 64 48;
+    /* Verde oliva suave */
+    --secondary: 148 154 126; /* verde natural */
+    --secondary-foreground: 78 56 45;
 
-    /* Tons neutros quentes */
-    --muted: 247 244 241; /* creme mais escuro */
-    --muted-foreground: 120 100 88;
+    /* Tons neutros calorosos */
+    --muted: 245 240 235; /* bege rosado */
+    --muted-foreground: 120 97 82;
 
-    /* Lilás claro para acentos */
-    --accent: 203 188 211; /* lilás suave */
-    --accent-foreground: 91 64 48;
+    /* Terracota suave para acentos */
+    --accent: 188 132 108; /* terracota clara */
+    --accent-foreground: 255 252 248;
 
-    /* Terracota para elementos de destaque */
-    --destructive: 191 114 89; /* terracota */
-    --destructive-foreground: 255 253 252;
+    /* Coral suave para elementos de alerta */
+    --destructive: 208 118 98; /* coral natural */
+    --destructive-foreground: 255 252 248;
 
-    --border: 237 227 220; /* bege claro */
-    --input: 244 237 231; /* creme para inputs */
-    --ring: 205 133 149; /* rosê para focus */
+    --border: 234 224 214; /* bege suave */
+    --input: 248 242 235; /* creme para inputs */
+    --ring: 201 129 139; /* rosa para focus */
 
-    --radius: 1rem; /* bordas mais arredondadas */
-
-    /* Sidebar com tons naturais */
-    --sidebar-background: 249 246 243;
-    --sidebar-foreground: 91 64 48;
-    --sidebar-primary: 205 133 149;
-    --sidebar-primary-foreground: 255 253 252;
-    --sidebar-accent: 244 237 231;
-    --sidebar-accent-foreground: 91 64 48;
-    --sidebar-border: 237 227 220;
-    --sidebar-ring: 205 133 149;
+    --radius: 1.2rem; /* bordas suavemente arredondadas */
   }
 
   .dark {
-    /* Modo escuro com tons terrosos */
-    --background: 40 35 31; /* marrom escuro */
-    --foreground: 249 246 243; /* creme claro */
+    --background: 45 35 28; /* marrom profundo */
+    --foreground: 248 242 235; /* creme claro */
 
-    --card: 50 44 39;
-    --card-foreground: 249 246 243;
+    --card: 52 41 33;
+    --card-foreground: 248 242 235;
 
-    --popover: 50 44 39;
-    --popover-foreground: 249 246 243;
+    --popover: 52 41 33;
+    --popover-foreground: 248 242 235;
 
-    --primary: 205 133 149; /* mantém o rosê */
-    --primary-foreground: 40 35 31;
+    --primary: 201 129 139;
+    --primary-foreground: 45 35 28;
 
-    --secondary: 80 75 65; /* verde oliva escuro */
-    --secondary-foreground: 249 246 243;
+    --secondary: 98 104 76;
+    --secondary-foreground: 248 242 235;
 
-    --muted: 60 53 47;
-    --muted-foreground: 180 170 160;
+    --muted: 65 52 42;
+    --muted-foreground: 180 160 145;
 
-    --accent: 100 88 102; /* lilás escuro */
-    --accent-foreground: 249 246 243;
+    --accent: 138 102 88;
+    --accent-foreground: 248 242 235;
 
-    --destructive: 191 114 89;
-    --destructive-foreground: 249 246 243;
+    --destructive: 208 118 98;
+    --destructive-foreground: 248 242 235;
 
-    --border: 70 62 55;
-    --input: 70 62 55;
-    --ring: 205 133 149;
-
-    --sidebar-background: 35 31 27;
-    --sidebar-foreground: 249 246 243;
-    --sidebar-primary: 205 133 149;
-    --sidebar-primary-foreground: 35 31 27;
-    --sidebar-accent: 50 44 39;
-    --sidebar-accent-foreground: 249 246 243;
-    --sidebar-border: 70 62 55;
-    --sidebar-ring: 205 133 149;
+    --border: 75 60 48;
+    --input: 75 60 48;
+    --ring: 201 129 139;
   }
 }
 
@@ -102,163 +80,235 @@
   }
 
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background text-foreground font-inter antialiased;
     background-image: 
-      radial-gradient(circle at 20% 80%, rgba(205, 133, 149, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(158, 164, 134, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(203, 188, 211, 0.03) 0%, transparent 50%);
+      radial-gradient(circle at 20% 80%, rgba(201, 129, 139, 0.03) 0%, transparent 70%),
+      radial-gradient(circle at 80% 20%, rgba(148, 154, 126, 0.04) 0%, transparent 70%),
+      radial-gradient(circle at 40% 40%, rgba(188, 132, 108, 0.02) 0%, transparent 60%);
     background-attachment: fixed;
+    background-size: 100% 100%;
   }
 
   /* Tipografia feminina e elegante */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-playfair;
+    @apply font-crimson;
   }
 
   h1 {
-    @apply text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight;
+    @apply text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight leading-tight;
+    letter-spacing: -0.02em;
   }
 
   h2 {
-    @apply text-2xl md:text-3xl font-medium tracking-tight;
+    @apply text-2xl md:text-3xl font-semibold tracking-tight leading-tight;
+    letter-spacing: -0.01em;
   }
 
   h3 {
-    @apply text-xl md:text-2xl font-medium;
+    @apply text-xl md:text-2xl font-medium leading-tight;
   }
 
-  /* Elementos com formas orgânicas */
-  .organic-shape {
-    border-radius: 2rem 1rem 2rem 1rem;
+  p {
+    @apply leading-relaxed;
   }
 
-  .petal-shape {
+  /* Formas orgânicas e naturais */
+  .organic-round {
+    border-radius: 2rem 1.5rem 2rem 1.5rem;
+  }
+
+  .petal-round {
     border-radius: 3rem 1rem 3rem 1rem;
   }
 
-  /* Efeitos de textura suave */
+  .leaf-round {
+    border-radius: 1.5rem 0.5rem 1.5rem 0.5rem;
+  }
+
+  /* Texturas suaves inspiradas na natureza */
   .texture-paper {
     background-image: 
-      radial-gradient(circle at 1px 1px, rgba(205, 133, 149, 0.08) 1px, transparent 0);
-    background-size: 20px 20px;
+      radial-gradient(circle at 2px 2px, rgba(201, 129, 139, 0.06) 1px, transparent 0);
+    background-size: 24px 24px;
   }
 
   .texture-linen {
     background-image: 
-      linear-gradient(45deg, rgba(158, 164, 134, 0.05) 25%, transparent 25%),
-      linear-gradient(-45deg, rgba(158, 164, 134, 0.05) 25%, transparent 25%);
-    background-size: 30px 30px;
+      linear-gradient(45deg, rgba(148, 154, 126, 0.03) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(148, 154, 126, 0.03) 25%, transparent 25%);
+    background-size: 20px 20px;
+  }
+
+  .texture-watercolor {
+    background: linear-gradient(135deg, 
+      rgba(201, 129, 139, 0.02) 0%, 
+      rgba(188, 132, 108, 0.02) 25%,
+      rgba(148, 154, 126, 0.02) 50%,
+      rgba(201, 129, 139, 0.02) 75%,
+      rgba(245, 240, 235, 0.05) 100%);
   }
 
   /* Sombras suaves e naturais */
   .shadow-soft {
-    box-shadow: 0 8px 32px rgba(205, 133, 149, 0.1), 0 2px 8px rgba(91, 64, 48, 0.05);
-  }
-
-  .shadow-petal {
     box-shadow: 
-      0 4px 20px rgba(205, 133, 149, 0.15),
-      0 1px 4px rgba(91, 64, 48, 0.1),
-      inset 0 1px 0 rgba(255, 253, 252, 0.3);
+      0 4px 20px rgba(201, 129, 139, 0.08),
+      0 1px 3px rgba(78, 56, 45, 0.06);
   }
 
-  /* Animações suaves e orgânicas */
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
+  .shadow-gentle {
+    box-shadow: 
+      0 8px 32px rgba(201, 129, 139, 0.12),
+      0 2px 8px rgba(78, 56, 45, 0.08),
+      inset 0 1px 0 rgba(255, 252, 248, 0.8);
   }
 
-  .animate-pulse-soft {
-    animation: pulse-soft 4s ease-in-out infinite;
+  .shadow-warm {
+    box-shadow: 
+      0 12px 40px rgba(188, 132, 108, 0.15),
+      0 4px 12px rgba(78, 56, 45, 0.1),
+      inset 0 1px 0 rgba(255, 252, 248, 0.9);
   }
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    33% { transform: translateY(-10px) rotate(1deg); }
-    66% { transform: translateY(-5px) rotate(-1deg); }
+  /* Animações orgânicas e suaves */
+  .animate-breathe {
+    animation: breathe 4s ease-in-out infinite;
   }
 
-  @keyframes pulse-soft {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.02); }
+  .animate-sway {
+    animation: sway 6s ease-in-out infinite;
+  }
+
+  .animate-bloom {
+    animation: bloom 3s ease-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    50% { transform: scale(1.02) rotate(0.5deg); opacity: 0.9; }
+  }
+
+  @keyframes sway {
+    0%, 100% { transform: translateX(0px) rotate(0deg); }
+    33% { transform: translateX(-2px) rotate(-0.5deg); }
+    66% { transform: translateX(2px) rotate(0.5deg); }
+  }
+
+  @keyframes bloom {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.05); opacity: 1; }
   }
 
   /* Gradientes naturais */
-  .gradient-rose {
-    background: linear-gradient(135deg, rgba(205, 133, 149, 0.1) 0%, rgba(203, 188, 211, 0.1) 100%);
+  .gradient-rose-earth {
+    background: linear-gradient(135deg, 
+      rgba(201, 129, 139, 0.1) 0%, 
+      rgba(188, 132, 108, 0.1) 100%);
   }
 
-  .gradient-earth {
-    background: linear-gradient(135deg, rgba(158, 164, 134, 0.1) 0%, rgba(191, 114, 89, 0.1) 100%);
+  .gradient-earth-sage {
+    background: linear-gradient(135deg, 
+      rgba(148, 154, 126, 0.1) 0%, 
+      rgba(188, 132, 108, 0.1) 100%);
   }
 
-  .gradient-sunset {
-    background: linear-gradient(135deg, rgba(205, 133, 149, 1) 0%, rgba(191, 114, 89, 1) 100%);
+  .gradient-warm-earth {
+    background: linear-gradient(135deg, 
+      rgba(201, 129, 139, 1) 0%, 
+      rgba(188, 132, 108, 1) 100%);
+  }
+
+  /* Estados de interação mais naturais */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .hover-lift:hover {
+    @apply transform -translate-y-1 shadow-gentle;
+  }
+
+  .focus-nature {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  /* Elementos específicos do método Billings */
+  .cycle-flow {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cycle-flow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(201, 129, 139, 0.15), 
+      transparent);
+    animation: flow 4s infinite ease-in-out;
+  }
+
+  @keyframes flow {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: -100%; }
+  }
+
+  /* Melhorias na acessibilidade */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-breathe,
+    .animate-sway,
+    .animate-bloom,
+    .cycle-flow::before {
+      animation: none;
+    }
+    
+    .hover-lift:hover {
+      transform: none;
+    }
+  }
+
+  /* Responsividade aprimorada */
+  @media (max-width: 640px) {
+    .organic-round,
+    .petal-round,
+    .leaf-round {
+      border-radius: 1rem 0.5rem 1rem 0.5rem;
+    }
+    
+    h1 {
+      @apply text-2xl md:text-3xl;
+    }
+    
+    h2 {
+      @apply text-xl md:text-2xl;
+    }
+  }
+
+  /* Elementos decorativos sutis */
+  .floral-accent::after {
+    content: '✿';
+    @apply text-primary/30 text-xs absolute -top-1 -right-1;
+  }
+
+  .nature-divider {
+    @apply relative;
+  }
+
+  .nature-divider::before {
+    content: '';
+    @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+    @apply w-8 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent;
   }
 }
 
-/* Remover popup Edit with Lovable */
-div[style*="position: fixed"][style*="bottom"][style*="right"] {
-  display: none !important;
-}
-
-button[style*="position: fixed"] {
-  display: none !important;
-}
-
-[data-lovable] {
-  display: none !important;
-}
-
-*[class*="lovable" i] {
-  display: none !important;
-}
-
+/* Remover elementos de debug */
+div[style*="position: fixed"][style*="bottom"][style*="right"],
+button[style*="position: fixed"],
+[data-lovable],
+*[class*="lovable" i],
 *[id*="lovable" i] {
   display: none !important;
-}
-
-button:contains("Edit with") {
-  display: none !important;
-}
-
-button:contains("Lovable") {
-  display: none !important;
-}
-
-/* Estilos para elementos específicos do método Billings */
-.cycle-indicator {
-  @apply relative overflow-hidden;
-}
-
-.cycle-indicator::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(205, 133, 149, 0.3), transparent);
-  animation: shimmer 3s infinite;
-}
-
-@keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
-
-/* Melhorias na acessibilidade */
-@media (prefers-reduced-motion: reduce) {
-  .animate-float,
-  .animate-pulse-soft,
-  .cycle-indicator::before {
-    animation: none;
-  }
-}
-
-/* Responsividade melhorada */
-@media (max-width: 640px) {
-  .organic-shape,
-  .petal-shape {
-    border-radius: 1.5rem 0.75rem 1.5rem 0.75rem;
-  }
 }

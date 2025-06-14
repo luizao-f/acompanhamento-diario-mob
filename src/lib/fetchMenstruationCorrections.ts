@@ -1,31 +1,43 @@
-import { supabase } from "@/integrations/supabase/client";
+
+import { supabase } from './supabase';
 
 export interface MenstruationCorrection {
   id: string;
   user_id: string;
-  created_at: string;
   correction_date: string;
   original_prediction: string;
-  actual_result: string;
-  correction_type: 'delay' | 'anticipation';
+  actual_result: boolean;
+  correction_type: string;
+  created_at: string;
 }
 
-/**
- * Busca as correções de menstruação do usuário no Supabase.
- * @param userId string - ID do usuário
- * @returns Promise<MenstruationCorrection[]>
- */
-export async function fetchMenstruationCorrections(userId: string): Promise<MenstruationCorrection[]> {
-  const { data, error } = await supabase
-    .from('menstruation_corrections')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+export const fetchMenstruationCorrections = async (): Promise<MenstruationCorrection[]> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('User not authenticated');
+      return [];
+    }
 
-  if (error) {
-    console.error('Erro ao buscar correções:', error);
+    const { data, error } = await supabase
+      .from('menstruation_corrections')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('correction_date', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching menstruation corrections:', error);
+      return [];
+    }
+
+    // Type conversion to match our interface
+    return (data || []).map(item => ({
+      ...item,
+      original_prediction: String(item.original_prediction)
+    })) as MenstruationCorrection[];
+  } catch (error) {
+    console.error('Error in fetchMenstruationCorrections:', error);
     return [];
   }
-
-  return (data as MenstruationCorrection[]) || [];
-}
+};

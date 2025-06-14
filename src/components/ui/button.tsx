@@ -10,20 +10,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-soft hover:shadow-petal rounded-organic hover:scale-105 transition-transform",
-        destructive:
-          "bg-destructive text-destructive-foreground shadow-soft hover:shadow-petal rounded-organic hover:scale-105",
-        outline:
-          "border-2 border-primary/20 bg-background/80 backdrop-blur-sm hover:bg-primary/5 hover:border-primary/40 rounded-organic shadow-soft",
-        secondary:
-          "bg-secondary text-secondary-foreground shadow-soft hover:shadow-petal rounded-organic hover:scale-105",
-        ghost: "hover:bg-accent/50 hover:text-accent-foreground rounded-organic transition-colors duration-300",
-        link: "text-primary underline-offset-4 hover:underline decoration-wavy decoration-primary/50",
+        default: "bg-primary text-primary-foreground shadow-soft hover:shadow-gentle rounded-organic hover-lift animate-breathe",
+        destructive: "bg-destructive text-destructive-foreground shadow-soft hover:shadow-gentle rounded-organic hover-lift",
+        outline: "border-2 border-primary/30 bg-background/80 backdrop-blur-sm hover:bg-primary/5 hover:border-primary/50 rounded-organic shadow-soft texture-linen",
+        secondary: "bg-secondary text-secondary-foreground shadow-soft hover:shadow-gentle rounded-organic hover-lift",
+        ghost: "hover:bg-accent/20 hover:text-accent-foreground rounded-organic transition-colors duration-300",
+        link: "text-primary underline-offset-4 hover:underline decoration-wavy decoration-primary/60",
       },
       size: {
         default: "h-12 px-6 py-3 rounded-organic",
-        sm: "h-10 rounded-petal px-4",
-        lg: "h-14 rounded-organic px-8 text-base",
+        sm: "h-10 rounded-leaf px-4",
+        lg: "h-14 rounded-petal px-8 text-base",
         icon: "h-12 w-12 rounded-full",
       },
     },
@@ -49,9 +46,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         {...props}
       >
-        {/* Efeito shimmer sutil */}
+        {/* Efeito sutil de fluxo natural */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
         </div>
         {children}
       </Comp>

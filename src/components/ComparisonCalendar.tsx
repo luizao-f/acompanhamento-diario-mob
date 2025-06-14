@@ -30,40 +30,67 @@ interface BillingData {
   [key: string]: any;
 }
 
-// Função para extrair todos os ciclos (menstruação -> ápice+3)
-function getCycles(billingData: BillingData[]): Array<{ start: Date; end: Date }> {
-  const sorted = [...billingData].sort((a, b) => a.date.localeCompare(b.date));
-  const menstruacoes = sorted.filter(
-    (d) => d.menstruacao === 'forte' || d.menstruacao === 'manchas'
-  );
-  const apices = sorted.filter(
-    (d) =>
-      d.sensacao?.includes('escorregadia') &&
-      d.muco?.some((m: string) => m === 'elastico' || m === 'transparente')
-  );
-
-  const cycles = [];
-  let apexIdx = 0;
-  for (let i = 0; i < menstruacoes.length; i++) {
-    const m = menstruacoes[i];
-    const mDate = parseISO(m.date);
-
-    // Procure o ápice após esse início de menstruação (e antes do próximo início)
-    while (apexIdx < apices.length && parseISO(apices[apexIdx].date) <= mDate) {
-      apexIdx++;
-    }
-    if (apexIdx < apices.length) {
-      const apexDate = parseISO(apices[apexIdx].date);
-      const barEnd = addDays(apexDate, 3); // 3 dias depois do ápice
-      if (
-        i + 1 === menstruacoes.length ||
-        apexDate < parseISO(menstruacoes[i + 1].date)
-      ) {
-        cycles.push({ start: mDate, end: barEnd });
-        apexIdx++;
-      }
+function findMenstruationPeriods(billingData: BillingData[]): Array<{start: string, end: string}> {
+  const menstruationDays = billingData
+    .filter(d => d.menstruacao === 'forte' || d.menstruacao === 'manchas')
+    .map(d => d.date)
+    .sort();
+  
+  if (menstruationDays.length === 0) return [];
+  
+  const periods: Array<{start: string, end: string}> = [];
+  let currentPeriod = { start: menstruationDays[0], end: menstruationDays[0] };
+  
+  for (let i = 1; i < menstruationDays.length; i++) {
+    const prevDate = parseISO(currentPeriod.end);
+    const currentDate = parseISO(menstruationDays[i]);
+    const daysDiff = Math.abs((currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff <= 2) {
+      // Dias consecutivos ou próximos, estende o período atual
+      currentPeriod.end = menstruationDays[i];
+    } else {
+      // Novo período
+      periods.push(currentPeriod);
+      currentPeriod = { start: menstruationDays[i], end: menstruationDays[i] };
     }
   }
+  periods.push(currentPeriod);
+  
+  return periods;
+}
+
+function findApexDay(billingData: BillingData[]): string | null {
+  const item = billingData.find(d =>
+    d.sensacao?.includes('escorregadia') &&
+    d.muco?.some(m => m === 'elastico' || m === 'transparente')
+  );
+  return item?.date ?? null;
+}
+
+// Função para extrair todos os ciclos (menstruação -> ápice+3)
+function getCycles(billingData: BillingData[]): Array<{ start: Date; end: Date }> {
+  const menstruationPeriods = findMenstruationPeriods(billingData);
+  const apexDay = findApexDay(billingData);
+  
+  if (menstruationPeriods.length === 0 || !apexDay) return [];
+  
+  const apexDate = parseISO(apexDay);
+  const cycles = [];
+  
+  // Encontrar o período de menstruação que precede o ápice
+  for (const period of menstruationPeriods) {
+    const periodStart = parseISO(period.start);
+    const periodEnd = parseISO(period.end);
+    
+    // O período deve ser anterior ao ápice
+    if (periodEnd < apexDate) {
+      const startDate = periodStart;
+      const endDate = addDays(apexDate, 3);
+      cycles.push({ start: startDate, end: endDate });
+    }
+  }
+  
   return cycles;
 }
 
@@ -294,15 +321,17 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-visible min-h-full w-full">
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden min-h-full w-full">
       {/* Month Header */}
-      <div className="bg-primary text-primary-foreground w-full p-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4 min-w-0">
-        <h3 className="text-base font-semibold break-words text-center sm:text-left w-full sm:w-auto min-w-0">
-          {format(month, 'MMMM yyyy', { locale: ptBR })}
-        </h3>
-        <p className="text-xs opacity-80 mt-0 w-full sm:w-auto text-center sm:text-right min-w-0">
-          {currentBillingData.length} registros encontrados
-        </p>
+      <div className="bg-primary text-primary-foreground w-full p-3">
+        <div className="flex flex-col space-y-2">
+          <h3 className="text-base font-semibold text-center whitespace-nowrap">
+            {format(month, 'MMMM yyyy', { locale: ptBR })}
+          </h3>
+          <p className="text-xs opacity-80 text-center">
+            {currentBillingData.length} registros encontrados
+          </p>
+        </div>
       </div>
 
       {/* Weekday Headers */}
@@ -358,7 +387,7 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
                   <div
                     key={day.toISOString()}
                     className={cn(
-                      'min-h-[80px] p-1.5 border border-gray-100 relative group',
+                      'min-h-[70px] p-1.5 border border-gray-100 relative group',
                       !isSameMonth(day, month) && 'text-gray-400 bg-gray-50',
                       getMenstruationColor(billingData),
                       highlighted && 'ring-2 ring-primary ring-inset'
@@ -375,7 +404,7 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
                       >
                         {format(day, 'd')}
                       </div>
-                      <div className="flex flex-wrap gap-0.5 justify-center flex-1">
+                      <div className="flex flex-wrap gap-0.5 justify-center flex-1 items-start">
                         {renderDayIcons(billingData)}
                       </div>
                       {renderMucoTags(billingData)}

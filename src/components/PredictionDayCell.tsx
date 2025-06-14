@@ -227,7 +227,7 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
         {/* NOVO: Observações se houver */}
         {billingData?.observacoes && billingData.observacoes.trim() !== '' && (
           <div className="text-xs text-gray-600 mt-1 truncate" title={billingData.observacoes}>
-            {billingData.observacoes.substring(0, 10)}...
+            {billingData.observacoes.substring(0, 20)}...
           </div>
         )}
       </div>

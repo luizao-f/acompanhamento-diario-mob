@@ -1,11 +1,11 @@
-// src/components/PredictionDayCell.tsx
+// src/components/PredictionDayCell.tsx - VERSÃO COMPLETA COM MELHORIAS
 import React from 'react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { BillingData } from '@/lib/supabase';
 import { PredictionData } from '@/lib/menstruationPrediction';
 import { PredictionComparison } from '@/lib/predictionTracking';
-import { Heart, Droplets } from 'lucide-react';
+import { Heart, Droplets, Circle } from 'lucide-react';
 
 interface PredictionDayCellProps {
   day: Date;
@@ -31,11 +31,20 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
   const hasOvulation = predictions.some(pred => pred.type === 'ovulation');
   const hasFertileDays = predictions.some(pred => pred.type === 'fertile');
   
+  // NOVO: Detectar ovulação MOB (sensação escorregadia + muco elástico/transparente)
+  const isMOBOvulation = billingData?.sensacao?.includes('escorregadia') && 
+                        billingData?.muco?.some(m => m === 'elastico' || m === 'transparente');
+  
   // Determinar cor de fundo baseado na lógica descrita
   const getBackgroundColor = () => {
     // Se tem menstruação confirmada (dados reais)
     if (hasMenstruation) {
       return 'bg-red-500 text-white';
+    }
+    
+    // NOVO: Se é ovulação MOB (dados reais) - azul mais claro
+    if (isMOBOvulation) {
+      return 'bg-blue-200 text-blue-900';
     }
     
     // Se tem predição de menstruação mas não tem dados reais ainda
@@ -79,6 +88,91 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
     return '';
   };
 
+  // NOVO: Renderizar todos os ícones de dados reais
+  const renderAllIcons = () => {
+    if (!billingData) return null;
+    const icons = [];
+
+    // Ícones de sensação
+    if (billingData.sensacao?.includes('seca')) {
+      icons.push(
+        <Circle 
+          key="seca" 
+          className="h-2 w-2 text-yellow-600" 
+          title="Seca"
+        />
+      );
+    }
+    if (billingData.sensacao?.includes('umida')) {
+      icons.push(
+        <Droplets 
+          key="umida" 
+          className="h-2 w-2 text-blue-400" 
+          title="Úmida"
+        />
+      );
+    }
+    if (billingData.sensacao?.includes('pegajosa')) {
+      icons.push(
+        <Circle 
+          key="pegajosa" 
+          className="h-2 w-2 text-orange-500 fill-current" 
+          title="Pegajosa"
+        />
+      );
+    }
+    if (billingData.sensacao?.includes('escorregadia')) {
+      icons.push(
+        <Droplets 
+          key="escorregadia" 
+          className="h-2 w-2 text-blue-600" 
+          title="Escorregadia"
+        />
+      );
+    }
+
+    // Ícone de relação sexual
+    if (billingData.relacao_sexual) {
+      icons.push(
+        <Heart 
+          key="relacao" 
+          className="h-2 w-2 text-pink-500 fill-current" 
+          title="Relação Sexual"
+        />
+      );
+    }
+
+    return icons;
+  };
+
+  // NOVO: Renderizar tags de muco
+  const renderMucoTags = () => {
+    if (!billingData?.muco || billingData.muco.length === 0) return null;
+
+    return (
+      <div className="flex flex-wrap gap-0.5 mt-1">
+        {billingData.muco.map((mucoType: string, index: number) => (
+          <div
+            key={`${mucoType}-${index}`}
+            className={cn(
+              'text-xs px-1 py-0.5 rounded text-center text-[9px]',
+              mucoType === 'clara_de_ovo' && 'bg-green-200 text-green-800',
+              mucoType === 'transparente' && 'bg-blue-200 text-blue-800',
+              mucoType === 'elastico' && 'bg-purple-200 text-purple-800',
+              mucoType === 'espesso' && 'bg-yellow-200 text-yellow-800',
+              mucoType === 'pegajoso' && 'bg-orange-200 text-orange-800',
+              mucoType === 'branco' && 'bg-gray-200 text-gray-800',
+              mucoType === 'nenhum' && 'bg-gray-100 text-gray-600'
+            )}
+            title={mucoType?.replace('_', ' ')}
+          >
+            {mucoType?.replace('_', ' ').substring(0, 3)}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const barColor = getBarColor();
 
   return (
@@ -99,24 +193,24 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
           {format(day, 'd')}
         </div>
         
-        {/* Ícones de dados reais */}
+        {/* NOVO: Mostrar "Ovulação MOB" para dias com dados reais de ovulação */}
+        {isMOBOvulation && (
+          <div className="text-xs text-blue-700 font-bold mb-1">Ovulação MOB</div>
+        )}
+        
+        {/* MELHORADO: Ícones de todos os dados reais */}
         <div className="flex flex-wrap gap-1 flex-1">
-          {billingData?.relacao_sexual && (
-            <Heart className="h-3 w-3 text-pink-500 fill-current" />
-          )}
-          {billingData?.sensacao?.includes('umida') && (
-            <Droplets className="h-3 w-3 text-blue-400" />
-          )}
-          {billingData?.sensacao?.includes('escorregadia') && (
-            <Droplets className="h-3 w-3 text-blue-600" />
-          )}
+          {renderAllIcons()}
         </div>
 
+        {/* NOVO: Tags de muco */}
+        {renderMucoTags()}
+
         {/* Indicadores de predição */}
-        {hasOvulation && (
+        {hasOvulation && !isMOBOvulation && (
           <div className="text-xs text-blue-700 font-medium">Ovulação</div>
         )}
-        {hasFertileDays && !hasOvulation && (
+        {hasFertileDays && !hasOvulation && !isMOBOvulation && (
           <div className="text-xs text-green-700">Fértil</div>
         )}
         
@@ -127,6 +221,13 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
               <span className="text-orange-600 font-medium">Atraso</span> : 
               <span className="text-black font-medium">Antecipação</span>
             }
+          </div>
+        )}
+        
+        {/* NOVO: Observações se houver */}
+        {billingData?.observacoes && billingData.observacoes.trim() !== '' && (
+          <div className="text-xs text-gray-600 mt-1 truncate" title={billingData.observacoes}>
+            {billingData.observacoes.substring(0, 10)}...
           </div>
         )}
       </div>

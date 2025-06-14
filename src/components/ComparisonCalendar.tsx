@@ -68,31 +68,40 @@ function findApexDay(billingData: BillingData[]): string | null {
   return item?.date ?? null;
 }
 
+
 // Função para extrair todos os ciclos (menstruação -> ápice+3)
 function getCycles(billingData: BillingData[]): Array<{ start: Date; end: Date }> {
-  const menstruationPeriods = findMenstruationPeriods(billingData);
-  const apexDay = findApexDay(billingData);
-  
-  if (menstruationPeriods.length === 0 || !apexDay) return [];
-  
-  const apexDate = parseISO(apexDay);
-  const cycles = [];
-  
-  // Encontrar o período de menstruação que precede o ápice
-  for (const period of menstruationPeriods) {
-    const periodStart = parseISO(period.start);
-    const periodEnd = parseISO(period.end);
-    
-    // O período deve ser anterior ao ápice
-    if (periodEnd < apexDate) {
-      const startDate = periodStart;
-      const endDate = addDays(apexDate, 3);
-      cycles.push({ start: startDate, end: endDate });
-      break; // Apenas o período mais próximo ao ápice
-    }
-  }
-  
-  return cycles;
+ const menstruationPeriods = findMenstruationPeriods(billingData);
+ const apexDay = findApexDay(billingData);
+ 
+ if (menstruationPeriods.length === 0 || !apexDay) return [];
+ 
+ const apexDate = parseISO(apexDay);
+ const cycles = [];
+ 
+ // Encontrar o período de menstruação que precede o ápice
+ let validPeriod = null;
+ for (const period of menstruationPeriods) {
+   const periodStart = parseISO(period.start);
+   const periodEnd = parseISO(period.end);
+   
+   // O período deve ser anterior ao ápice
+   if (periodEnd < apexDate) {
+     // Se ainda não temos um período válido ou este é mais próximo do ápice
+     if (!validPeriod || periodStart > parseISO(validPeriod.start)) {
+       validPeriod = period;
+     }
+   }
+ }
+ 
+ // Só adiciona o ciclo se encontrou um período válido
+ if (validPeriod) {
+   const startDate = parseISO(validPeriod.start);
+   const endDate = addDays(apexDate, 3);
+   cycles.push({ start: startDate, end: endDate });
+ }
+ 
+ return cycles;
 }
 
 const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({

@@ -1,314 +1,133 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+
 @layer base {
   :root {
-    /* Paleta natural e feminina */
-    --background: 252 249 246; /* creme quente */
-    --foreground: 78 56 45; /* marrom terroso suave */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
-    --card: 255 252 248; /* off-white suave */
-    --card-foreground: 78 56 45;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 255 252 248;
-    --popover-foreground: 78 56 45;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    /* Rosa suave e natural */
-    --primary: 201 129 139; /* rosa terroso */
-    --primary-foreground: 255 252 248;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
 
-    /* Verde oliva suave */
-    --secondary: 148 154 126; /* verde natural */
-    --secondary-foreground: 78 56 45;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    /* Tons neutros calorosos */
-    --muted: 245 240 235; /* bege rosado */
-    --muted-foreground: 120 97 82;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Terracota suave para acentos */
-    --accent: 188 132 108; /* terracota clara */
-    --accent-foreground: 255 252 248;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    /* Coral suave para elementos de alerta */
-    --destructive: 208 118 98; /* coral natural */
-    --destructive-foreground: 255 252 248;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 234 224 214; /* bege suave */
-    --input: 248 242 235; /* creme para inputs */
-    --ring: 201 129 139; /* rosa para focus */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
 
-    --radius: 1.2rem; /* bordas suavemente arredondadas */
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 45 35 28; /* marrom profundo */
-    --foreground: 248 242 235; /* creme claro */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --card: 52 41 33;
-    --card-foreground: 248 242 235;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 52 41 33;
-    --popover-foreground: 248 242 235;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 201 129 139;
-    --primary-foreground: 45 35 28;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 98 104 76;
-    --secondary-foreground: 248 242 235;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 65 52 42;
-    --muted-foreground: 180 160 145;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 138 102 88;
-    --accent-foreground: 248 242 235;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 208 118 98;
-    --destructive-foreground: 248 242 235;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 75 60 48;
-    --input: 75 60 48;
-    --ring: 201 129 139;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border transition-colors duration-300;
+    @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground font-inter antialiased;
-    background-image: 
-      radial-gradient(circle at 20% 80%, rgba(201, 129, 139, 0.03) 0%, transparent 70%),
-      radial-gradient(circle at 80% 20%, rgba(148, 154, 126, 0.04) 0%, transparent 70%),
-      radial-gradient(circle at 40% 40%, rgba(188, 132, 108, 0.02) 0%, transparent 60%);
-    background-attachment: fixed;
-    background-size: 100% 100%;
-  }
-
-  /* Tipografia feminina e elegante */
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-crimson;
-  }
-
-  h1 {
-    @apply text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight leading-tight;
-    letter-spacing: -0.02em;
-  }
-
-  h2 {
-    @apply text-2xl md:text-3xl font-semibold tracking-tight leading-tight;
-    letter-spacing: -0.01em;
-  }
-
-  h3 {
-    @apply text-xl md:text-2xl font-medium leading-tight;
-  }
-
-  p {
-    @apply leading-relaxed;
-  }
-
-  /* Formas orgânicas e naturais */
-  .organic-round {
-    border-radius: 2rem 1.5rem 2rem 1.5rem;
-  }
-
-  .petal-round {
-    border-radius: 3rem 1rem 3rem 1rem;
-  }
-
-  .leaf-round {
-    border-radius: 1.5rem 0.5rem 1.5rem 0.5rem;
-  }
-
-  /* Texturas suaves inspiradas na natureza */
-  .texture-paper {
-    background-image: 
-      radial-gradient(circle at 2px 2px, rgba(201, 129, 139, 0.06) 1px, transparent 0);
-    background-size: 24px 24px;
-  }
-
-  .texture-linen {
-    background-image: 
-      linear-gradient(45deg, rgba(148, 154, 126, 0.03) 25%, transparent 25%),
-      linear-gradient(-45deg, rgba(148, 154, 126, 0.03) 25%, transparent 25%);
-    background-size: 20px 20px;
-  }
-
-  .texture-watercolor {
-    background: linear-gradient(135deg, 
-      rgba(201, 129, 139, 0.02) 0%, 
-      rgba(188, 132, 108, 0.02) 25%,
-      rgba(148, 154, 126, 0.02) 50%,
-      rgba(201, 129, 139, 0.02) 75%,
-      rgba(245, 240, 235, 0.05) 100%);
-  }
-
-  /* Sombras suaves e naturais */
-  .shadow-soft {
-    box-shadow: 
-      0 4px 20px rgba(201, 129, 139, 0.08),
-      0 1px 3px rgba(78, 56, 45, 0.06);
-  }
-
-  .shadow-gentle {
-    box-shadow: 
-      0 8px 32px rgba(201, 129, 139, 0.12),
-      0 2px 8px rgba(78, 56, 45, 0.08),
-      inset 0 1px 0 rgba(255, 252, 248, 0.8);
-  }
-
-  .shadow-warm {
-    box-shadow: 
-      0 12px 40px rgba(188, 132, 108, 0.15),
-      0 4px 12px rgba(78, 56, 45, 0.1),
-      inset 0 1px 0 rgba(255, 252, 248, 0.9);
-  }
-
-  /* Animações orgânicas e suaves */
-  .animate-breathe {
-    animation: breathe 4s ease-in-out infinite;
-  }
-
-  .animate-sway {
-    animation: sway 6s ease-in-out infinite;
-  }
-
-  .animate-bloom {
-    animation: bloom 3s ease-out infinite;
-  }
-
-  @keyframes breathe {
-    0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
-    50% { transform: scale(1.02) rotate(0.5deg); opacity: 0.9; }
-  }
-
-  @keyframes sway {
-    0%, 100% { transform: translateX(0px) rotate(0deg); }
-    33% { transform: translateX(-2px) rotate(-0.5deg); }
-    66% { transform: translateX(2px) rotate(0.5deg); }
-  }
-
-  @keyframes bloom {
-    0%, 100% { transform: scale(1); opacity: 0.7; }
-    50% { transform: scale(1.05); opacity: 1; }
-  }
-
-  /* Gradientes naturais */
-  .gradient-rose-earth {
-    background: linear-gradient(135deg, 
-      rgba(201, 129, 139, 0.1) 0%, 
-      rgba(188, 132, 108, 0.1) 100%);
-  }
-
-  .gradient-earth-sage {
-    background: linear-gradient(135deg, 
-      rgba(148, 154, 126, 0.1) 0%, 
-      rgba(188, 132, 108, 0.1) 100%);
-  }
-
-  .gradient-warm-earth {
-    background: linear-gradient(135deg, 
-      rgba(201, 129, 139, 1) 0%, 
-      rgba(188, 132, 108, 1) 100%);
-  }
-
-  /* Estados de interação mais naturais */
-  .hover-lift {
-    @apply transition-all duration-300 ease-out;
-  }
-
-  .hover-lift:hover {
-    @apply transform -translate-y-1 shadow-gentle;
-  }
-
-  .focus-nature {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background;
-  }
-
-  /* Elementos específicos do método Billings */
-  .cycle-flow {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .cycle-flow::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, 
-      transparent, 
-      rgba(201, 129, 139, 0.15), 
-      transparent);
-    animation: flow 4s infinite ease-in-out;
-  }
-
-  @keyframes flow {
-    0% { left: -100%; }
-    50% { left: 100%; }
-    100% { left: -100%; }
-  }
-
-  /* Melhorias na acessibilidade */
-  @media (prefers-reduced-motion: reduce) {
-    .animate-breathe,
-    .animate-sway,
-    .animate-bloom,
-    .cycle-flow::before {
-      animation: none;
-    }
-    
-    .hover-lift:hover {
-      transform: none;
-    }
-  }
-
-  /* Responsividade aprimorada */
-  @media (max-width: 640px) {
-    .organic-round,
-    .petal-round,
-    .leaf-round {
-      border-radius: 1rem 0.5rem 1rem 0.5rem;
-    }
-    
-    h1 {
-      @apply text-2xl md:text-3xl;
-    }
-    
-    h2 {
-      @apply text-xl md:text-2xl;
-    }
-  }
-
-  /* Elementos decorativos sutis */
-  .floral-accent::after {
-    content: '✿';
-    @apply text-primary/30 text-xs absolute -top-1 -right-1;
-  }
-
-  .nature-divider {
-    @apply relative;
-  }
-
-  .nature-divider::before {
-    content: '';
-    @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
-    @apply w-8 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent;
+    @apply bg-background text-foreground;
   }
 }
 
-/* Remover elementos de debug */
-div[style*="position: fixed"][style*="bottom"][style*="right"],
-button[style*="position: fixed"],
-[data-lovable],
-*[class*="lovable" i],
+/* Remover popup Edit with Lovable */
+div[style*="position: fixed"][style*="bottom"][style*="right"] {
+  display: none !important;
+}
+
+button[style*="position: fixed"] {
+  display: none !important;
+}
+
+[data-lovable] {
+  display: none !important;
+}
+
+*[class*="lovable" i] {
+  display: none !important;
+}
+
 *[id*="lovable" i] {
+  display: none !important;
+}
+
+/* Específico para o botão do Lovable */
+button:contains("Edit with") {
+  display: none !important;
+}
+
+button:contains("Lovable") {
   display: none !important;
 }

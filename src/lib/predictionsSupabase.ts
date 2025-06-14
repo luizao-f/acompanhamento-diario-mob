@@ -1,75 +1,50 @@
+import { supabase } from "@/integrations/supabase/client";
+import { PredictionData, CorrectionData } from "./menstruationPrediction";
 
-import { supabase } from './supabase';
+/**
+ * Salva predições na tabela 'menstruation_predictions' do Supabase.
+ * Usa upsert para evitar duplicidades por date/prediction_type.
+ */
+export async function savePredictions(predictions: PredictionData[]) {
+  if (!predictions.length) return;
+  // Mapeia os campos do objeto para os nomes reais do banco e garante predicted_date
+  const predictionsToSave = predictions.map(p => ({
+    date: p.date, // deve existir no objeto PredictionData
+    prediction_type: p.type, // 'type' vira 'prediction_type'
+    isprediction: p.isPrediction, // 'isPrediction' vira 'isprediction'
+    confidence_score: p.confidence, // 'confidence' vira 'confidence_score'
+    predicted_date: p.predictedDate ?? p.date, // Usa p.predictedDate, se não existir usa p.date
+    // Adicione outros campos se necessário
+  }));
 
-export interface PredictionData {
-  date: string;
-  type: 'menstruation' | 'ovulation' | 'fertile';
-  confidence: number;
+  const { error } = await supabase
+    .from("menstruation_predictions")
+    .upsert(predictionsToSave, { onConflict: "date,prediction_type" }); // ajuste para as colunas corretas!
+  if (error) {
+    console.error("Erro ao salvar predições:", error);
+    throw error;
+  }
 }
 
-export const savePredictions = async (predictions: PredictionData[]): Promise<boolean> => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      console.error('User not authenticated');
-      return false;
-    }
+/**
+ * Salva correções na tabela 'menstruation_corrections' do Supabase.
+ * Usa upsert para evitar duplicidades por date/type.
+ * (Ajuste para prediction_type/isprediction/confidence_score se necessário!)
+ */
+export async function saveCorrections(corrections: CorrectionData[]) {
+  if (!corrections.length) return;
+  // Mapeie os campos se necessário, igual ao savePredictions acima
+  const correctionsToSave = corrections.map(c => ({
+    date: c.date,
+    type: c.type, // ajuste se no banco for prediction_type!
+    // Adicione outros campos conforme necessário!
+  }));
 
-    const formattedPredictions = predictions.map(prediction => ({
-      user_id: user.id,
-      predicted_date: prediction.date,
-      prediction_type: prediction.type,
-      confidence: prediction.confidence,
-      created_at: new Date().toISOString()
-    }));
-
-    const { error } = await supabase
-      .from('menstruation_predictions')
-      .insert(formattedPredictions);
-
-    if (error) {
-      console.error('Error saving predictions:', error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error in savePredictions:', error);
-    return false;
+  const { error } = await supabase
+    .from("menstruation_corrections")
+    .upsert(correctionsToSave, { onConflict: "date,type" }); // ajuste conforme as colunas reais!
+  if (error) {
+    console.error("Erro ao salvar correções:", error);
+    throw error;
   }
-};
-
-export const saveCorrections = async (corrections: Array<{ date: string; type: 'false_positive' | 'false_negative' }>): Promise<boolean> => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      console.error('User not authenticated');
-      return false;
-    }
-
-    const formattedCorrections = corrections.map(correction => ({
-      user_id: user.id,
-      correction_date: correction.date,
-      correction_type: correction.type,
-      actual_result: correction.type === 'false_negative',
-      original_prediction: correction.type === 'false_positive',
-      created_at: new Date().toISOString()
-    }));
-
-    const { error } = await supabase
-      .from('menstruation_corrections')
-      .insert(formattedCorrections);
-
-    if (error) {
-      console.error('Error saving corrections:', error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error in saveCorrections:', error);
-    return false;
-  }
-};
+}

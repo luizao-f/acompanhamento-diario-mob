@@ -117,49 +117,37 @@ export type Database = {
       menstruation_predictions: {
         Row: {
           based_on_months: number | null
-          confidence: number | null
           confidence_score: number | null
           created_at: string | null
           cycle_average: number | null
-          date: string | null
           duration_average: number | null
           id: string
-          isprediction: boolean | null
           predicted_date: string
           prediction_type: string
-          type: string | null
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
           based_on_months?: number | null
-          confidence?: number | null
           confidence_score?: number | null
           created_at?: string | null
           cycle_average?: number | null
-          date?: string | null
           duration_average?: number | null
           id?: string
-          isprediction?: boolean | null
           predicted_date: string
           prediction_type: string
-          type?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           based_on_months?: number | null
-          confidence?: number | null
           confidence_score?: number | null
           created_at?: string | null
           cycle_average?: number | null
-          date?: string | null
           duration_average?: number | null
           id?: string
-          isprediction?: boolean | null
           predicted_date?: string
           prediction_type?: string
-          type?: string | null
           updated_at?: string | null
           user_id?: string | null
         }

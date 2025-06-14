@@ -88,6 +88,7 @@ function getCycles(billingData: BillingData[]): Array<{ start: Date; end: Date }
       const startDate = periodStart;
       const endDate = addDays(apexDate, 3);
       cycles.push({ start: startDate, end: endDate });
+      break; // Apenas o período mais próximo ao ápice
     }
   }
   
@@ -323,13 +324,13 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden min-h-full w-full">
       {/* Month Header */}
-      <div className="bg-primary text-primary-foreground w-full p-3">
-        <div className="flex flex-col space-y-2">
-          <h3 className="text-base font-semibold text-center whitespace-nowrap">
-            {format(month, 'MMMM yyyy', { locale: ptBR })}
+      <div className="bg-primary text-primary-foreground w-full p-2">
+        <div className="flex flex-col items-center space-y-1">
+          <h3 className="text-sm font-semibold text-center">
+            {format(month, 'MMM yyyy', { locale: ptBR })}
           </h3>
           <p className="text-xs opacity-80 text-center">
-            {currentBillingData.length} registros encontrados
+            {currentBillingData.length} registros
           </p>
         </div>
       </div>
@@ -387,7 +388,7 @@ const ComparisonCalendar: React.FC<ComparisonCalendarProps> = ({
                   <div
                     key={day.toISOString()}
                     className={cn(
-                      'min-h-[70px] p-1.5 border border-gray-100 relative group',
+                      'min-h-[60px] p-1 border border-gray-100 relative group',
                       !isSameMonth(day, month) && 'text-gray-400 bg-gray-50',
                       getMenstruationColor(billingData),
                       highlighted && 'ring-2 ring-primary ring-inset'

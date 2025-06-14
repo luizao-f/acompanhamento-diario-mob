@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Leaf } from 'lucide-react';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -38,34 +36,26 @@ const Login = () => {
     }
   };
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-accent/60 via-background/85 to-primary/20 py-8 px-2 animate-organic-fade relative" style={{
-      backgroundImage:
-        "url('https://www.transparenttextures.com/patterns/paper-fibers.png'), linear-gradient(112deg, #fff2f4 12%, #f8efeb 70%, #eae3f7 100%)",
-      backgroundRepeat: "repeat, no-repeat",
-      backgroundBlendMode: "lighten"
-    }}>
-      {/* Decoração aquarelada/floral */}
-      <div className="organic-curve organic-curve-1" />
-      <div className="organic-curve organic-curve-2" />
-      <Card className="w-full max-w-md bg-card/95 rounded-[2.5rem] shadow-nature backdrop-blur-md border-0">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 animate-fade-in-up">
+       <div className="absolute inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_4rem]">
+        <div className="absolute bottom-0 left-0 right-0 top-0 bg-[radial-gradient(circle_500px_at_50%_200px,hsl(var(--secondary)),transparent)]"></div>
+      </div>
+      <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-serif font-bold text-primary flex items-center justify-center gap-2">
-            <Leaf className="w-8 h-8 text-secondary nature-icon" />
-            Bem-vinda de volta
-          </CardTitle>
-          <CardDescription className="font-sans text-muted-foreground">Acesse sua conta para continuar sua jornada.</CardDescription>
+          <CardTitle className="text-3xl font-bold text-primary">Bem-vinda de volta</CardTitle>
+          <CardDescription>Acesse sua conta para continuar sua jornada.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="username">Usuário</Label>
-              <Input id="username" type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="Seu nome de usuário" required autoFocus />
+              <Input id="username" type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="Seu nome de usuário" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
               <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Sua senha" required />
             </div>
-            <Button type="submit" className="w-full rounded-full shadow-soft" size="lg">
+            <Button type="submit" className="w-full" size="lg">
               Entrar
             </Button>
           </form>

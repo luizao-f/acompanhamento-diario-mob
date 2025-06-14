@@ -93,12 +93,13 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
     if (!billingData) return null;
     const icons = [];
 
+    // Ícones de sensação
     if (billingData.sensacao?.includes('seca')) {
       icons.push(
         <Circle 
           key="seca" 
           className="h-2 w-2 text-yellow-600" 
-          aria-label="Seca"
+          title="Seca"
         />
       );
     }
@@ -107,7 +108,7 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
         <Droplets 
           key="umida" 
           className="h-2 w-2 text-blue-400" 
-          aria-label="Úmida"
+          title="Úmida"
         />
       );
     }
@@ -116,7 +117,7 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
         <Circle 
           key="pegajosa" 
           className="h-2 w-2 text-orange-500 fill-current" 
-          aria-label="Pegajosa"
+          title="Pegajosa"
         />
       );
     }
@@ -125,19 +126,22 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
         <Droplets 
           key="escorregadia" 
           className="h-2 w-2 text-blue-600" 
-          aria-label="Escorregadia"
+          title="Escorregadia"
         />
       );
     }
+
+    // Ícone de relação sexual
     if (billingData.relacao_sexual) {
       icons.push(
         <Heart 
           key="relacao" 
           className="h-2 w-2 text-pink-500 fill-current" 
-          aria-label="Relação Sexual"
+          title="Relação Sexual"
         />
       );
     }
+
     return icons;
   };
 

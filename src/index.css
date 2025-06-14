@@ -3,88 +3,87 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Design system atualizado */
-/* Cores principais e fontes definidas pelo Tailwind */
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 
 @layer base {
   :root {
-    --background: 340 80% 98%;         /* Creme pastel */
-    --foreground: 320 18% 24%;
+    --background: 20 50% 98%; /* Creamy white */
+    --foreground: 20 14% 10%; /* Dark brown */
 
-    --card: 340 80% 98%;               /* Rosê bem claro */
-    --card-foreground: 320 18% 24%;
+    --card: 20 50% 98%;
+    --card-foreground: 20 14% 10%;
 
-    --popover: 24 61% 95%;
-    --popover-foreground: 320 18% 24%;
+    --popover: 20 50% 98%;
+    --popover-foreground: 20 14% 10%;
 
-    --primary: 338 53% 73%;            /* Rosê */
-    --primary-foreground: 340 80% 99%;
+    --primary: 345 60% 65%; /* Soft Rosé */
+    --primary-foreground: 345 100% 98%;
 
-    --secondary: 22 69% 88%;           /* Terracota pêssego */
-    --secondary-foreground: 22 92% 32%;
+    --secondary: 15 30% 80%; /* Light Terracotta */
+    --secondary-foreground: 15 25% 30%;
 
-    --muted: 275 36% 93%;              /* Lilás claro */
-    --muted-foreground: 275 18% 40%;
+    --muted: 20 40% 94%;
+    --muted-foreground: 20 10% 45%;
 
-    --accent: 85 31% 88%;              /* Verde oliva claro */
-    --accent-foreground: 85 20% 26%;
+    --accent: 80 20% 90%; /* Pale Olive Green */
+    --accent-foreground: 80 15% 25%;
 
-    --destructive: 0 58% 72%;
+    --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 338 43% 92%;
-    --input: 340 47% 91%;
-    --ring: 338 50% 67%;
+    --border: 20 20% 88%;
+    --input: 20 20% 92%;
+    --ring: 345 60% 55%;
 
-    --radius: 2rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 340 70% 97%;
-    --sidebar-foreground: 322 18% 35%;
-    --sidebar-primary: 338 53% 65%;
-    --sidebar-primary-foreground: 338 100% 99%;
-    --sidebar-accent: 85 31% 88%;
-    --sidebar-accent-foreground: 85 30% 26%;
-    --sidebar-border: 338 43% 92%;
-    --sidebar-ring: 338 50% 67%;
+    --sidebar-background: 20 50% 97%;
+    --sidebar-foreground: 20 14% 25%;
+    --sidebar-primary: 345 60% 65%;
+    --sidebar-primary-foreground: 345 100% 98%;
+    --sidebar-accent: 20 40% 94%;
+    --sidebar-accent-foreground: 20 14% 15%;
+    --sidebar-border: 20 20% 88%;
+    --sidebar-ring: 345 60% 55%;
   }
 
   .dark {
-    --background: 271 31% 12%;
-    --foreground: 340 80% 95%;
+    --background: 20 14% 8%;
+    --foreground: 20 50% 98%;
 
-    --card: 271 31% 18%;
-    --card-foreground: 340 80% 95%;
+    --card: 20 14% 8%;
+    --card-foreground: 20 50% 98%;
 
-    --popover: 271 29% 16%;
-    --popover-foreground: 340 80% 90%;
+    --popover: 20 14% 8%;
+    --popover-foreground: 20 50% 98%;
 
-    --primary: 338 45% 63%;
-    --primary-foreground: 338 97% 96%;
+    --primary: 345 50% 55%;
+    --primary-foreground: 345 100% 98%;
 
-    --secondary: 22 40% 34%;
-    --secondary-foreground: 22 48% 90%;
+    --secondary: 15 25% 20%;
+    --secondary-foreground: 15 30% 80%;
 
-    --muted: 265 22% 24%;
-    --muted-foreground: 285 29% 85%;
+    --muted: 20 15% 15%;
+    --muted-foreground: 20 10% 55%;
 
-    --accent: 85 26% 28%;
-    --accent-foreground: 85 31% 92%;
+    --accent: 80 15% 20%;
+    --accent-foreground: 80 20% 90%;
 
-    --destructive: 0 43% 46%;
+    --destructive: 0 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 335 31% 14%;
-    --input: 335 31% 18%;
-    --ring: 338 45% 52%;
+    --border: 20 15% 20%;
+    --input: 20 15% 25%;
+    --ring: 345 50% 45%;
 
-    --sidebar-background: 271 31% 16%;
-    --sidebar-foreground: 340 80% 94%;
-    --sidebar-primary: 338 53% 65%;
-    --sidebar-primary-foreground: 338 100% 99%;
-    --sidebar-accent: 85 31% 24%;
-    --sidebar-accent-foreground: 340 80% 98%;
-    --sidebar-border: 335 31% 14%;
-    --sidebar-ring: 338 45% 52%;
+    --sidebar-background: 20 14% 10%;
+    --sidebar-foreground: 20 50% 97%;
+    --sidebar-primary: 345 50% 55%;
+    --sidebar-primary-foreground: 345 100% 98%;
+    --sidebar-accent: 20 15% 15%;
+    --sidebar-accent-foreground: 20 50% 95%;
+    --sidebar-border: 20 15% 20%;
+    --sidebar-ring: 345 50% 45%;
   }
 }
 
@@ -95,83 +94,9 @@
 
   body {
     @apply bg-background text-foreground font-sans;
-    /* Fundo textura papel aquarela */
-    background-image:
-      url('https://www.transparenttextures.com/patterns/paper-fibers.png'),
-      linear-gradient(117deg, #fff7f3 0%, #fdf6e3 60%, #eae3f7 100%);
-    background-blend-mode: lighten;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
-    font-variation-settings: "wght" 430;
-    /* Suavizar títulos para aparência feminina */
-  }
-
-  .section-bg {
-    background-image:
-      url('https://www.transparenttextures.com/patterns/linen.png'),
-      linear-gradient(115deg, #f9ede6 70%, #eae3f7 100%);
-    background-blend-mode: lighten;
-  }
-}
-
-/* Orgânicos: círculos e formas curvas suaves */
-.organic-curve {
-  position: absolute;
-  z-index: -1;
-  opacity: 0.13;
-  pointer-events: none;
-}
-.organic-curve-1 {
-  top: -48px; left: -60px; width: 420px; height: 250px;
-  background: radial-gradient(ellipse 320px 160px at 60% 40%, #e1efe4bb 80%, transparent 100%);
-  border-radius: 60% 40% 60% 40% / 50%;
-}
-.organic-curve-2 {
-  bottom: -60px; right: -48px; width: 320px; height: 200px;
-  background: radial-gradient(ellipse 200px 90px at 80% 50%, #eed6ee77 80%, transparent 100%);
-  border-radius: 45% 55% 70% 30% / 65% 40% 25% 75%;
-}
-.organic-curve-3 {
-  bottom: 12%; left: 12vw; width: 200px; height: 110px;
-  background: radial-gradient(ellipse 150px 90px at 60% 40%, #fdf2ee 65%, transparent 100%);
-  border-radius: 60%;
-}
-
-/* Itens decorativos de folhas/flor para usar inline nos componentes */
-.nature-icon {
-  animation: nature-float 3.8s ease-in-out infinite alternate;
-}
-
-@keyframes nature-float {
-  0% { transform: translateY(0px);}
-  100% { transform: translateY(18px);}
-}
-
-.shadow-nature {
-  box-shadow: 0 2px 12px 0 rgba(212,230,190,0.11);
-}
-.shadow-soft {
-  box-shadow: 0 6px 28px 0 rgba(238,182,193,0.14), 0 1.5px 8px 0 rgba(212,230,190,0.13);
-}
-
-input, textarea, select {
-  border-radius: 3rem;
-  border: none;
-  background: #fff7f3;
-  font-size: 1.06rem;
-  font-family: 'Inter', 'Lora', serif;
-  box-shadow: 0 1.5px 8px 0 rgba(238,182,193,0.07);
-}
-
-button {
-  font-family: 'Lora', 'Inter', serif;
-}
-
-@media (max-width: 768px) {
-  .organic-curve-1, .organic-curve-2 {
-    width: 55vw;
-    height: 20vw;
   }
 }

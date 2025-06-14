@@ -101,3 +101,33 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Remover popup Edit with Lovable */
+div[style*="position: fixed"][style*="bottom"][style*="right"] {
+  display: none !important;
+}
+
+button[style*="position: fixed"] {
+  display: none !important;
+}
+
+[data-lovable] {
+  display: none !important;
+}
+
+*[class*="lovable" i] {
+  display: none !important;
+}
+
+*[id*="lovable" i] {
+  display: none !important;
+}
+
+/* Específico para o botão do Lovable */
+button:contains("Edit with") {
+  display: none !important;
+}
+
+button:contains("Lovable") {
+  display: none !important;
+}

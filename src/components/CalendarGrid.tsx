@@ -18,9 +18,34 @@ interface CalendarGridProps {
   billingData: BillingData[];
 }
 
-function findFirstMenstruationDay(billingData: BillingData[]): string | null {
-  const item = billingData.find(d => d.menstruacao === 'forte' || d.menstruacao === 'manchas');
-  return item?.date ?? null;
+function findMenstruationPeriods(billingData: BillingData[]): Array<{start: string, end: string}> {
+  const menstruationDays = billingData
+    .filter(d => d.menstruacao === 'forte' || d.menstruacao === 'manchas')
+    .map(d => d.date)
+    .sort();
+  
+  if (menstruationDays.length === 0) return [];
+  
+  const periods: Array<{start: string, end: string}> = [];
+  let currentPeriod = { start: menstruationDays[0], end: menstruationDays[0] };
+  
+  for (let i = 1; i < menstruationDays.length; i++) {
+    const prevDate = parseISO(currentPeriod.end);
+    const currentDate = parseISO(menstruationDays[i]);
+    const daysDiff = Math.abs((currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff <= 2) {
+      // Dias consecutivos ou próximos, estende o período atual
+      currentPeriod.end = menstruationDays[i];
+    } else {
+      // Novo período
+      periods.push(currentPeriod);
+      currentPeriod = { start: menstruationDays[i], end: menstruationDays[i] };
+    }
+  }
+  periods.push(currentPeriod);
+  
+  return periods;
 }
 
 function findApexDay(billingData: BillingData[]): string | null {
@@ -32,12 +57,33 @@ function findApexDay(billingData: BillingData[]): string | null {
 }
 
 function getBarInterval(billingData: BillingData[]): [Date | null, Date | null] {
-  const start = findFirstMenstruationDay(billingData);
-  const apex = findApexDay(billingData);
-  if (!start || !apex) return [null, null];
-  const startDate = parseISO(start);
-  const apexDate = parseISO(apex);
+  const menstruationPeriods = findMenstruationPeriods(billingData);
+  const apexDay = findApexDay(billingData);
+  
+  if (menstruationPeriods.length === 0 || !apexDay) return [null, null];
+  
+  const apexDate = parseISO(apexDay);
+  
+  // Encontrar o período de menstruação que precede o ápice
+  let validPeriod = null;
+  for (const period of menstruationPeriods) {
+    const periodStart = parseISO(period.start);
+    const periodEnd = parseISO(period.end);
+    
+    // O período deve ser anterior ao ápice
+    if (periodEnd < apexDate) {
+      // Se ainda não temos um período válido ou este é mais próximo do ápice
+      if (!validPeriod || parseISO(period.start) > parseISO(validPeriod.start)) {
+        validPeriod = period;
+      }
+    }
+  }
+  
+  if (!validPeriod) return [null, null];
+  
+  const startDate = parseISO(validPeriod.start);
   const endDate = addDays(apexDate, 3);
+  
   return [startDate, endDate];
 }
 

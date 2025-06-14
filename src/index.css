@@ -1,87 +1,90 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+/* Design system atualizado */
+/* Cores principais e fontes definidas pelo Tailwind */
 
 @layer base {
   :root {
-    --background: 38 47% 99%;     /* Creme pastel */
-    --foreground: 20 14% 18%;     /* Marrom avelã */
+    --background: 340 80% 98%;         /* Creme pastel */
+    --foreground: 320 18% 24%;
 
-    --card: 38 47% 97%;
-    --card-foreground: 20 14% 18%;
+    --card: 340 80% 98%;               /* Rosê bem claro */
+    --card-foreground: 320 18% 24%;
 
-    --popover: 38 45% 96%;
-    --popover-foreground: 20 14% 15%;
+    --popover: 24 61% 95%;
+    --popover-foreground: 320 18% 24%;
 
-    --primary: 338 53% 65%;       /* Rosê suave */
-    --primary-foreground: 338 98% 99%;
+    --primary: 338 53% 73%;            /* Rosê */
+    --primary-foreground: 340 80% 99%;
 
-    --secondary: 22 49% 76%;      /* Terracota clara */
-    --secondary-foreground: 22 92% 25%;
+    --secondary: 22 69% 88%;           /* Terracota pêssego */
+    --secondary-foreground: 22 92% 32%;
 
-    --muted: 275 21% 95%;         /* Lilás pastel */
-    --muted-foreground: 275 18% 38%;
+    --muted: 275 36% 93%;              /* Lilás claro */
+    --muted-foreground: 275 18% 40%;
 
-    --accent: 85 31% 88%;         /* Verde oliva clarinho */
-    --accent-foreground: 85 30% 26%;
+    --accent: 85 31% 88%;              /* Verde oliva claro */
+    --accent-foreground: 85 20% 26%;
 
-    --destructive: 0 70% 55%;
+    --destructive: 0 58% 72%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 24 18% 90%;
-    --input: 24 18% 93%;
-    --ring: 338 50% 55%;
+    --border: 338 43% 92%;
+    --input: 340 47% 91%;
+    --ring: 338 50% 67%;
 
-    --radius: 1.5rem;
+    --radius: 2rem;
 
-    --sidebar-background: 38 47% 99%;
-    --sidebar-foreground: 20 14% 25%;
+    --sidebar-background: 340 70% 97%;
+    --sidebar-foreground: 322 18% 35%;
     --sidebar-primary: 338 53% 65%;
     --sidebar-primary-foreground: 338 100% 99%;
     --sidebar-accent: 85 31% 88%;
     --sidebar-accent-foreground: 85 30% 26%;
-    --sidebar-border: 24 18% 90%;
-    --sidebar-ring: 338 50% 55%;
+    --sidebar-border: 338 43% 92%;
+    --sidebar-ring: 338 50% 67%;
   }
 
   .dark {
-    --background: 275 27% 12%;
-    --foreground: 38 47% 97%;
+    --background: 271 31% 12%;
+    --foreground: 340 80% 95%;
 
-    --card: 275 27% 16%;
-    --card-foreground: 38 47% 97%;
+    --card: 271 31% 18%;
+    --card-foreground: 340 80% 95%;
 
-    --popover: 275 27% 14%;
-    --popover-foreground: 38 47% 95%;
+    --popover: 271 29% 16%;
+    --popover-foreground: 340 80% 90%;
 
-    --primary: 338 45% 55%;
+    --primary: 338 45% 63%;
     --primary-foreground: 338 97% 96%;
 
-    --secondary: 22 32% 35%;
+    --secondary: 22 40% 34%;
     --secondary-foreground: 22 48% 90%;
 
-    --muted: 265 18% 22%;
-    --muted-foreground: 275 29% 85%;
+    --muted: 265 22% 24%;
+    --muted-foreground: 285 29% 85%;
 
-    --accent: 85 30% 20%;
-    --accent-foreground: 85 31% 88%;
+    --accent: 85 26% 28%;
+    --accent-foreground: 85 31% 92%;
 
-    --destructive: 0 53% 46%;
+    --destructive: 0 43% 46%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 22 28% 22%;
-    --input: 22 28% 25%;
-    --ring: 338 45% 45%;
-    --sidebar-background: 275 27% 14%;
-    --sidebar-foreground: 38 47% 96%;
-    --sidebar-primary: 338 45% 55%;
-    --sidebar-primary-foreground: 338 97% 96%;
-    --sidebar-accent: 85 30% 20%;
-    --sidebar-accent-foreground: 38 47% 87%;
-    --sidebar-border: 22 28% 22%;
-    --sidebar-ring: 338 45% 45%;
+    --border: 335 31% 14%;
+    --input: 335 31% 18%;
+    --ring: 338 45% 52%;
+
+    --sidebar-background: 271 31% 16%;
+    --sidebar-foreground: 340 80% 94%;
+    --sidebar-primary: 338 53% 65%;
+    --sidebar-primary-foreground: 338 100% 99%;
+    --sidebar-accent: 85 31% 24%;
+    --sidebar-accent-foreground: 340 80% 98%;
+    --sidebar-border: 335 31% 14%;
+    --sidebar-ring: 338 45% 52%;
   }
 }
 
@@ -92,131 +95,85 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+    /* Fundo textura papel aquarela */
+    background-image:
+      url('https://www.transparenttextures.com/patterns/paper-fibers.png'),
+      linear-gradient(117deg, #fff7f3 0%, #fdf6e3 60%, #eae3f7 100%);
+    background-blend-mode: lighten;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
+    font-variation-settings: "wght" 430;
+    /* Suavizar títulos para aparência feminina */
+  }
+
+  .section-bg {
+    background-image:
+      url('https://www.transparenttextures.com/patterns/linen.png'),
+      linear-gradient(115deg, #f9ede6 70%, #eae3f7 100%);
+    background-blend-mode: lighten;
   }
 }
 
-/*
-  Concentric circles
-*/
-.circles {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.circles li {
+/* Orgânicos: círculos e formas curvas suaves */
+.organic-curve {
   position: absolute;
-  display: block;
-  list-style: none;
-  width: 20px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  animation: animate 25s linear infinite;
-  bottom: -150px;
+  z-index: -1;
+  opacity: 0.13;
+  pointer-events: none;
+}
+.organic-curve-1 {
+  top: -48px; left: -60px; width: 420px; height: 250px;
+  background: radial-gradient(ellipse 320px 160px at 60% 40%, #e1efe4bb 80%, transparent 100%);
+  border-radius: 60% 40% 60% 40% / 50%;
+}
+.organic-curve-2 {
+  bottom: -60px; right: -48px; width: 320px; height: 200px;
+  background: radial-gradient(ellipse 200px 90px at 80% 50%, #eed6ee77 80%, transparent 100%);
+  border-radius: 45% 55% 70% 30% / 65% 40% 25% 75%;
+}
+.organic-curve-3 {
+  bottom: 12%; left: 12vw; width: 200px; height: 110px;
+  background: radial-gradient(ellipse 150px 90px at 60% 40%, #fdf2ee 65%, transparent 100%);
+  border-radius: 60%;
 }
 
-.circles li:nth-child(1) {
-  left: 25%;
-  width: 80px;
-  height: 80px;
-  animation-delay: 0s;
+/* Itens decorativos de folhas/flor para usar inline nos componentes */
+.nature-icon {
+  animation: nature-float 3.8s ease-in-out infinite alternate;
 }
 
-.circles li:nth-child(2) {
-  left: 10%;
-  width: 20px;
-  height: 20px;
-  animation-delay: 2s;
-  animation-duration: 12s;
+@keyframes nature-float {
+  0% { transform: translateY(0px);}
+  100% { transform: translateY(18px);}
 }
 
-.circles li:nth-child(3) {
-  left: 70%;
-  width: 20px;
-  height: 20px;
-  animation-delay: 4s;
+.shadow-nature {
+  box-shadow: 0 2px 12px 0 rgba(212,230,190,0.11);
+}
+.shadow-soft {
+  box-shadow: 0 6px 28px 0 rgba(238,182,193,0.14), 0 1.5px 8px 0 rgba(212,230,190,0.13);
 }
 
-.circles li:nth-child(4) {
-  left: 40%;
-  width: 60px;
-  height: 60px;
-  animation-delay: 0s;
-  animation-duration: 18s;
-}
-
-.circles li:nth-child(5) {
-  left: 65%;
-  width: 20px;
-  height: 20px;
-  animation-delay: 0s;
-}
-
-.circles li:nth-child(6) {
-  left: 75%;
-  width: 110px;
-  height: 110px;
-  animation-delay: 3s;
-}
-
-.circles li:nth-child(7) {
-  left: 35%;
-  width: 150px;
-  height: 150px;
-  animation-delay: 7s;
-}
-
-.circles li:nth-child(8) {
-  left: 50%;
-  width: 25px;
-  height: 25px;
-  animation-delay: 15s;
-  animation-duration: 45s;
-}
-
-.circles li:nth-child(9) {
-  left: 20%;
-  width: 15px;
-  height: 15px;
-  animation-delay: 2s;
-  animation-duration: 35s;
-}
-
-.circles li:nth-child(10) {
-  left: 85%;
-  width: 150px;
-  height: 150px;
-  animation-delay: 0s;
-  animation-duration: 11s;
-}
-
-@keyframes animate {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 1;
-    border-radius: 0;
-  }
-
-  100% {
-    transform: translateY(-1000px) rotate(720deg);
-    opacity: 0;
-    border-radius: 50%;
-  }
-}
-
-// Fundo de textura suave para o app todo
-body {
-  background-color: hsl(var(--background));
-  background-image:
-    url('https://www.transparenttextures.com/patterns/paper-fibers.png'),
-    linear-gradient(115deg, #fde4ec 0%, #fdf6e3 100%);
-  background-blend-mode: lighten;
+input, textarea, select {
+  border-radius: 3rem;
+  border: none;
+  background: #fff7f3;
+  font-size: 1.06rem;
   font-family: 'Inter', 'Lora', serif;
+  box-shadow: 0 1.5px 8px 0 rgba(238,182,193,0.07);
 }
+
+button {
+  font-family: 'Lora', 'Inter', serif;
+}
+
+@media (max-width: 768px) {
+  .organic-curve-1, .organic-curve-2 {
+    width: 55vw;
+    height: 20vw;
+  }
+}
+
+

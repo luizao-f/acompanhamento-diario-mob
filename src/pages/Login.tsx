@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -38,20 +37,19 @@ const Login = () => {
     }
   };
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-accent/40 via-background/80 to-primary/10 py-8 px-2 animate-organic-fade" style={{
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-accent/60 via-background/85 to-primary/20 py-8 px-2 animate-organic-fade relative" style={{
       backgroundImage:
-        "url('https://www.transparenttextures.com/patterns/paper-fibers.png'), linear-gradient(109deg, #fde4ec 20%, #fdf6e3 60%, #ded9f6 100%)",
+        "url('https://www.transparenttextures.com/patterns/paper-fibers.png'), linear-gradient(112deg, #fff2f4 12%, #f8efeb 70%, #eae3f7 100%)",
       backgroundRepeat: "repeat, no-repeat",
       backgroundBlendMode: "lighten"
     }}>
-      <div className="absolute inset-0 flex justify-center items-start">
-        {/* Decoração aquarela folha */}
-        <Leaf className="w-24 h-24 text-accent/30 mt-24" />
-      </div>
-      <Card className="w-full max-w-md bg-card/90 rounded-3xl shadow-nature backdrop-blur-md border-0">
+      {/* Decoração aquarelada/floral */}
+      <div className="organic-curve organic-curve-1" />
+      <div className="organic-curve organic-curve-2" />
+      <Card className="w-full max-w-md bg-card/95 rounded-[2.5rem] shadow-nature backdrop-blur-md border-0">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-primary flex items-center justify-center gap-2">
-            <Leaf className="w-8 h-8 text-secondary" />
+          <CardTitle className="text-3xl font-serif font-bold text-primary flex items-center justify-center gap-2">
+            <Leaf className="w-8 h-8 text-secondary nature-icon" />
             Bem-vinda de volta
           </CardTitle>
           <CardDescription className="font-sans text-muted-foreground">Acesse sua conta para continuar sua jornada.</CardDescription>

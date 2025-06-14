@@ -166,7 +166,7 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
             )}
             title={mucoType?.replace('_', ' ')}
           >
-            {mucoType?.replace('_', ' ').substring(0, 3)}
+            {mucoType?.replace('_', ' ').substring(0, 10
           </div>
         ))}
       </div>
@@ -211,7 +211,7 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
           <div className="text-xs text-blue-700 font-medium">Ovulação Tabelinha</div>
         )}
         {hasFertileDays && !hasOvulation && !isMOBOvulation && (
-          <div className="text-xs text-green-700">Fértil Tabelinha</div>
+          <div className="text-xs text-green-700">Fértil Tabelinha>
         )}
         
         {/* Mostrar tipo de erro se houver comparação */}

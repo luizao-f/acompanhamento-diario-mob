@@ -208,10 +208,10 @@ const PredictionDayCell: React.FC<PredictionDayCellProps> = ({
 
         {/* Indicadores de predição */}
         {hasOvulation && !isMOBOvulation && (
-          <div className="text-xs text-blue-700 font-medium">Ovulação</div>
+          <div className="text-xs text-blue-700 font-medium">Ovulação Tabelinha</div>
         )}
         {hasFertileDays && !hasOvulation && !isMOBOvulation && (
-          <div className="text-xs text-green-700">Fértil</div>
+          <div className="text-xs text-green-700">Fértil Tabelinha</div>
         )}
         
         {/* Mostrar tipo de erro se houver comparação */}

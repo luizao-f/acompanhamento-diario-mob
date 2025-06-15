@@ -108,8 +108,8 @@ export const useTelegramNotifications = (botToken?: string, chatId?: string) => 
   };
 };
 
-// Função para agendar notificações diárias
-export const scheduleDaily notifications = () => {
+// Função para agendar notificações diárias - CORRIGIDO
+export const scheduleDailyNotifications = () => {
   // Verificar se já existe um agendamento
   if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     // Registrar service worker para notificações em background
@@ -157,7 +157,7 @@ interface TelegramConfigProps {
 export const TelegramConfig: React.FC<TelegramConfigProps> = ({ onConfigSaved }) => {
   const [botToken, setBotToken] = useState('');
   const [chatId, setChatId] = useState('');
-  const [isTestinng, setIsTesting] = useState(false);
+  const [isTesting, setIsTesting] = useState(false); // CORRIGIDO: era isTestinng
   const { toast } = useToast();
 
   const handleTest = async () => {
@@ -254,9 +254,9 @@ export const TelegramConfig: React.FC<TelegramConfigProps> = ({ onConfigSaved })
           <Button 
             variant="outline" 
             onClick={handleTest}
-            disabled={isTestinng}
+            disabled={isTesting}
           >
-            {isTestinng ? 'Testando...' : 'Testar'}
+            {isTesting ? 'Testando...' : 'Testar'}
           </Button>
           <Button onClick={handleSave}>
             Salvar
@@ -282,37 +282,6 @@ export const TelegramConfig: React.FC<TelegramConfigProps> = ({ onConfigSaved })
     </Card>
   );
 };
-
-// Service Worker para notificações em background
-// Arquivo: public/sw.js
-export const serviceWorkerCode = `
-self.addEventListener('install', (event) => {
-  console.log('Service Worker instalado');
-});
-
-self.addEventListener('activate', (event) => {
-  console.log('Service Worker ativado');
-});
-
-// Verificar horário a cada minuto
-setInterval(() => {
-  const now = new Date();
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-
-  if (hours === 18 && minutes === 0) {
-    // Enviar mensagem para o cliente
-    self.clients.matchAll().then(clients => {
-      clients.forEach(client => {
-        client.postMessage({
-          type: 'DAILY_REMINDER',
-          time: now.toISOString()
-        });
-      });
-    });
-  }
-}, 60000);
-`;
 
 // Componente principal de notificações
 export const NotificationManager: React.FC = () => {
@@ -348,8 +317,8 @@ export const NotificationManager: React.FC = () => {
 
     window.addEventListener('daily-reminder', handleDailyReminder);
     
-    // Iniciar verificação de horário
-    scheduleDaily notifications();
+    // Iniciar verificação de horário - CORRIGIDO
+    scheduleDailyNotifications();
 
     return () => {
       window.removeEventListener('daily-reminder', handleDailyReminder);

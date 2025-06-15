@@ -9,7 +9,7 @@ import CalendarGrid from '@/components/CalendarGrid';
 import DayFormModal from '@/components/DayFormModal';
 import CalendarLegend from '@/components/CalendarLegend';
 import FilterButtons from '@/components/FilterButtons';
-import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon, Bell } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
@@ -87,31 +87,37 @@ const Calendar = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
       <div className="max-w-full mx-auto p-2 lg:p-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">
-          <div className="flex items-center gap-4">
-            <CalendarIcon className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-primary">Método Billings</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link to="/menstrual-cycle">
-              <Button variant="outline" size="sm">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Ciclo Menstrual
-              </Button>
-            </Link>
-            <Link to="/comparison">
-              <Button variant="outline" size="sm">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Comparação
-              </Button>
-            </Link>
-            <Button variant="outline" size="sm" onClick={logout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair
-            </Button>
-          </div>
-        </div>
+{/* Header */}
+<div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">
+  <div className="flex items-center gap-4">
+    <CalendarIcon className="h-8 w-8 text-primary" />
+    <h1 className="text-2xl font-bold text-primary">Método Billings</h1>
+  </div>
+  <div className="flex items-center gap-2">
+    <Link to="/notifications">
+      <Button variant="outline" size="sm">
+        <Bell className="h-4 w-4 mr-2" />
+        Notificações
+      </Button>
+    </Link>
+    <Link to="/menstrual-cycle">
+      <Button variant="outline" size="sm">
+        <BarChart3 className="h-4 w-4 mr-2" />
+        Ciclo Menstrual
+      </Button>
+    </Link>
+    <Link to="/comparison">
+      <Button variant="outline" size="sm">
+        <BarChart3 className="h-4 w-4 mr-2" />
+        Comparação
+      </Button>
+    </Link>
+    <Button variant="outline" size="sm" onClick={logout}>
+      <LogOut className="h-4 w-4 mr-2" />
+      Sair
+    </Button>
+  </div>
+</div>
 
         {/* Navigation */}
         <div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">

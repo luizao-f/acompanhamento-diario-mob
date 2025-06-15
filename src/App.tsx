@@ -1,4 +1,4 @@
-
+// src/App.tsx
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Calendar from "./pages/Calendar";
 import Comparison from "./pages/Comparison";
 import MenstrualCycle from "./pages/MenstrualCycle";
+import NotificationSettings from "./pages/NotificationSettings";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,11 @@ const App = () => (
             <Route path="/menstrual-cycle" element={
               <ProtectedRoute>
                 <MenstrualCycle />
+              </ProtectedRoute>
+            } />
+            <Route path="/notifications" element={
+              <ProtectedRoute>
+                <NotificationSettings />
               </ProtectedRoute>
             } />
           </Routes>

@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Bell, Clock, MessageCircle, CheckCircle, LogOut } from 'lucide-react';
-import NotificationDebugPanel from '@/components/NotificationDebugPanel';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface NotificationConfig {
   enabled: boolean;
@@ -19,70 +19,31 @@ interface NotificationConfig {
 }
 
 const NotificationSettings = () => {
-  const [config, setConfig] = useState<NotificationConfig>({
-    enabled: false,
-    botToken: '',
-    chatId: '',
-    reminderTime: '18:00'
-  });
+  const { 
+    config, 
+    updateConfig, 
+    testConnection, 
+    sendTestMessage, 
+    isConfigured,
+    sendReminderNow,
+    scheduleTestIn,
+    debugInfo,
+    clearDebugLog
+  } = useNotifications();
+  
   const [isTesting, setIsTesting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
+  const [showDebug, setShowDebug] = useState(false);
   const { toast } = useToast();
-  const { logout } = useAuth();
 
   useEffect(() => {
-    loadConfig();
-    registerServiceWorker();
-    setupMessageListener();
-  }, []);
-
-  const loadConfig = () => {
-    const saved = localStorage.getItem('notification_config');
-    if (saved) {
-      try {
-        const parsedConfig = JSON.parse(saved);
-        setConfig(parsedConfig);
-        if (parsedConfig.enabled && parsedConfig.botToken && parsedConfig.chatId) {
-          testConnection(parsedConfig.botToken, parsedConfig.chatId, false);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar configurações:', error);
-      }
+    // Configuração já é gerenciada pelo hook useNotifications
+    if (config.enabled && config.botToken && config.chatId) {
+      testConnectionInternal(config.botToken, config.chatId, false);
     }
-  };
+  }, [config]);
 
-  const saveConfig = () => {
-    localStorage.setItem('notification_config', JSON.stringify(config));
-    toast({
-      title: "Configurações salvas!",
-      description: "Suas preferências de notificação foram atualizadas",
-    });
-  };
-
-  const registerServiceWorker = async () => {
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('Service Worker registrado:', registration);
-      } catch (error) {
-        console.error('Erro ao registrar Service Worker:', error);
-      }
-    }
-  };
-
-  const setupMessageListener = () => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data.type === 'DAILY_REMINDER') {
-          if (config.enabled) {
-            sendTelegramReminder();
-          }
-        }
-      });
-    }
-  };
-
-  const testConnection = async (botToken?: string, chatId?: string, showToast = true) => {
+  const testConnectionInternal = async (botToken?: string, chatId?: string, showToast = true) => {
     const token = botToken || config.botToken;
     const chat = chatId || config.chatId;
 
@@ -100,18 +61,21 @@ const NotificationSettings = () => {
     setIsTesting(true);
     
     try {
-      const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+      const success = await testConnection();
+      setConnectionStatus(success ? 'connected' : 'error');
       
-      if (response.ok) {
-        setConnectionStatus('connected');
-        if (showToast) {
-          // Enviar mensagem de teste
-          await sendTestMessage(token, chat);
+      if (showToast) {
+        if (success) {
+          await sendTestMessage();
+        } else {
+          toast({
+            title: "Erro de conexão",
+            description: "Não foi possível conectar ao Telegram. Verifique suas credenciais.",
+            variant: "destructive",
+          });
         }
-        return true;
-      } else {
-        throw new Error('Conexão falhou');
       }
+      return success;
     } catch (error) {
       setConnectionStatus('error');
       if (showToast) {
@@ -127,96 +91,38 @@ const NotificationSettings = () => {
     }
   };
 
-  const sendTestMessage = async (botToken: string, chatId: string) => {
-    try {
-      const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: '🤖 <b>Teste de conexão</b>\n\nSua configuração do Telegram está funcionando corretamente!',
-          parse_mode: 'HTML',
-        }),
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Sucesso!",
-          description: "Mensagem de teste enviada com sucesso",
-        });
-      } else {
-        throw new Error('Falha ao enviar mensagem');
-      }
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível enviar a mensagem de teste",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const sendTelegramReminder = async () => {
-    if (!config.enabled || !config.botToken || !config.chatId) {
-      return;
-    }
-
-    const message = `
-🌸 <b>Lembrete do Método Billings</b> 🌸
-
-Olá! É hora de registrar suas observações do dia.
-
-📝 <b>Não esqueça de anotar:</b>
-• Sensação (seca, úmida, pegajosa, escorregadia)
-• Muco (características observadas)
-• Menstruação (se houver)
-• Relação sexual (se houver)
-• Observações gerais
-
-🔗 <b>Acesse o sistema:</b>
-${window.location.origin}
-
-⏰ <i>Lembrete automático às ${config.reminderTime}</i>
-    `;
-
-    try {
-      const response = await fetch(`https://api.telegram.org/bot${config.botToken}/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: config.chatId,
-          text: message,
-          parse_mode: 'HTML',
-        }),
-      });
-
-      if (response.ok) {
-        console.log('Lembrete diário enviado com sucesso');
-      }
-    } catch (error) {
-      console.error('Erro ao enviar lembrete diário:', error);
-    }
+  const saveConfig = () => {
+    toast({
+      title: "Configurações salvas!",
+      description: "Suas preferências de notificação foram atualizadas",
+    });
   };
 
   const sendTestReminder = async () => {
     setIsTesting(true);
-    await sendTelegramReminder();
+    await sendReminderNow();
     setIsTesting(false);
-    toast({
-      title: "Lembrete de teste enviado!",
-      description: "Verifique seu Telegram",
-    });
   };
 
-  const updateConfig = (field: keyof NotificationConfig, value: any) => {
-    setConfig(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const getCurrentTime = () => {
+    return new Date().toLocaleTimeString('pt-BR');
+  };
+
+  const getTimeUntilReminder = () => {
+    const now = new Date();
+    const [hours, minutes] = config.reminderTime.split(':').map(Number);
+    const reminderTime = new Date();
+    reminderTime.setHours(hours, minutes, 0, 0);
+    
+    if (reminderTime <= now) {
+      reminderTime.setDate(reminderTime.getDate() + 1);
+    }
+    
+    const diff = reminderTime.getTime() - now.getTime();
+    const hoursLeft = Math.floor(diff / (1000 * 60 * 60));
+    const minutesLeft = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${hoursLeft}h ${minutesLeft}m`;
   };
 
   const getStatusIcon = () => {
@@ -263,7 +169,7 @@ ${window.location.origin}
                 <Switch
                   id="notifications-enabled"
                   checked={config.enabled}
-                  onCheckedChange={(checked) => updateConfig('enabled', checked)}
+                  onCheckedChange={(checked) => updateConfig({ enabled: checked })}
                 />
                 <Label htmlFor="notifications-enabled">
                   Receber lembretes diários
@@ -279,7 +185,7 @@ ${window.location.origin}
                   id="reminder-time"
                   type="time"
                   value={config.reminderTime}
-                  onChange={(e) => updateConfig('reminderTime', e.target.value)}
+                  onChange={(e) => updateConfig({ reminderTime: e.target.value })}
                 />
               </div>
             </CardContent>
@@ -300,7 +206,7 @@ ${window.location.origin}
                   id="bot-token"
                   type="password"
                   value={config.botToken}
-                  onChange={(e) => updateConfig('botToken', e.target.value)}
+                  onChange={(e) => updateConfig({ botToken: e.target.value })}
                   placeholder="123456789:ABCdefGHIjklMNOpqrSTUvwxyz"
                 />
               </div>
@@ -310,7 +216,7 @@ ${window.location.origin}
                 <Input
                   id="chat-id"
                   value={config.chatId}
-                  onChange={(e) => updateConfig('chatId', e.target.value)}
+                  onChange={(e) => updateConfig({ chatId: e.target.value })}
                   placeholder="123456789"
                 />
               </div>
@@ -318,7 +224,7 @@ ${window.location.origin}
               <div className="flex gap-2">
                 <Button 
                   variant="outline" 
-                  onClick={() => testConnection()}
+                  onClick={() => testConnectionInternal()}
                   disabled={isTesting}
                   className="flex-1"
                 >

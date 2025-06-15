@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Bell, Clock, MessageCircle, CheckCircle, LogOut } from 'lucide-react';
+import NotificationDebugPanel from '@/components/NotificationDebugPanel';
 
 interface NotificationConfig {
   enabled: boolean;

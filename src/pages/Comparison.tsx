@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ChevronLeft, ChevronRight, LogOut, Calendar as CalendarIcon, BarChart3 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, Calendar as CalendarIcon, BarChart3, Menu } from 'lucide-react';
 import ComparisonCalendar from '@/components/ComparisonCalendar';
 import CalendarLegend from '@/components/CalendarLegend';
 import FilterButtons from '@/components/FilterButtons';
@@ -15,6 +15,7 @@ const Comparison = () => {
   const [baseDate, setBaseDate] = useState(new Date());
   const [highlightFilter, setHighlightFilter] = useState<string | null>(null);
   const [monthsToShow, setMonthsToShow] = useState(4);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { logout } = useAuth();
 
   // Gerar os meses baseado na quantidade selecionada
@@ -69,14 +70,16 @@ const Comparison = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
-      <div className="max-w-full mx-auto p-2 lg:p-4">
+      <div className="max-w-full mx-auto p-2 sm:p-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">
-          <div className="flex items-center gap-4">
-            <BarChart3 className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-primary">Comparação de Meses</h1>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+            <h1 className="text-lg sm:text-2xl font-bold text-primary">Comparação de Meses</h1>
           </div>
-          <div className="flex items-center gap-4">
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-4">
             <Link to="/">
               <Button variant="outline" size="sm">
                 <CalendarIcon className="h-4 w-4 mr-2" />
@@ -88,30 +91,61 @@ const Comparison = () => {
               Sair
             </Button>
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden mb-3 bg-white rounded-lg shadow-sm p-3">
+            <div className="flex flex-col gap-2">
+              <Link to="/" className="w-full">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  Calendário
+                </Button>
+              </Link>
+              <Button variant="outline" size="sm" onClick={logout} className="w-full justify-start">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Navigation */}
-        <div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handlePreviousMonths}>
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3 gap-3">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="sm" onClick={handlePreviousMonths} className="flex-1 sm:flex-none text-xs sm:text-sm">
               <ChevronLeft className="h-4 w-4" />
-              {monthsToShow} Meses Anteriores
+              <span className="hidden sm:inline">{monthsToShow} Meses Anteriores</span>
+              <span className="sm:hidden">Anterior</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleNextMonths}>
-              Próximos {monthsToShow} Meses
+            <Button variant="outline" size="sm" onClick={handleNextMonths} className="flex-1 sm:flex-none text-xs sm:text-sm">
+              <span className="hidden sm:inline">Próximos {monthsToShow} Meses</span>
+              <span className="sm:hidden">Próximo</span>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
 
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold text-primary">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <h2 className="text-sm sm:text-lg font-semibold text-primary text-center">
               Comparação: {format(months[0], 'MMM', { locale: ptBR })} - {format(months[months.length - 1], 'MMM yyyy', { locale: ptBR })}
             </h2>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap justify-center">
               {/* Seletor de quantidade de meses */}
               <Select value={monthsToShow.toString()} onValueChange={handleMonthsToShowChange}>
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-20 sm:w-24">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -124,20 +158,20 @@ const Comparison = () => {
               </Select>
 
               <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="w-24 sm:w-32">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: 12 }, (_, i) => (
                     <SelectItem key={i} value={i.toString()}>
-                      {format(new Date(2024, i, 1), 'MMMM', { locale: ptBR })}
+                      {format(new Date(2024, i, 1), 'MMM', { locale: ptBR })}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
               <Select value={currentYear.toString()} onValueChange={handleYearChange}>
-                <SelectTrigger className="w-20">
+                <SelectTrigger className="w-16 sm:w-20">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -173,7 +207,7 @@ const Comparison = () => {
         {/* Calendários de comparação ocupando toda a largura */}
         <div className={`grid grid-cols-1 ${getGridCols()} gap-3`}>
           {months.map((month, index) => (
-            <div key={month.toISOString()} className="h-[450px]">
+            <div key={month.toISOString()} className="h-[350px] sm:h-[450px]">
               <ComparisonCalendar 
                 month={month} 
                 highlightFilter={highlightFilter}

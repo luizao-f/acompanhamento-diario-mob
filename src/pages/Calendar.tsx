@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -9,7 +10,7 @@ import CalendarGrid from '@/components/CalendarGrid';
 import DayFormModal from '@/components/DayFormModal';
 import CalendarLegend from '@/components/CalendarLegend';
 import FilterButtons from '@/components/FilterButtons';
-import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, BarChart3, Calendar as CalendarIcon, Menu } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
 import { getBillingDataForMonth } from '@/lib/supabase';
@@ -19,6 +20,7 @@ const Calendar = () => {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [highlightFilter, setHighlightFilter] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { logout } = useAuth();
 
   const monthStart = startOfMonth(currentDate);
@@ -86,14 +88,16 @@ const Calendar = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
-      <div className="max-w-full mx-auto p-2 lg:p-4">
+      <div className="max-w-full mx-auto p-2 sm:p-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">
-          <div className="flex items-center gap-4">
-            <CalendarIcon className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-primary">Método Billings</h1>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <CalendarIcon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+            <h1 className="text-lg sm:text-2xl font-bold text-primary">Método Billings</h1>
           </div>
-          <div className="flex items-center gap-4">
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-4">
             <Link to="/menstrual-cycle">
               <Button variant="outline" size="sm">
                 <BarChart3 className="h-4 w-4 mr-2" />
@@ -111,38 +115,73 @@ const Calendar = () => {
               Sair
             </Button>
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden mb-3 bg-white rounded-lg shadow-sm p-3">
+            <div className="flex flex-col gap-2">
+              <Link to="/menstrual-cycle" className="w-full">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Ciclo Menstrual
+                </Button>
+              </Link>
+              <Link to="/comparison" className="w-full">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Comparação
+                </Button>
+              </Link>
+              <Button variant="outline" size="sm" onClick={logout} className="w-full justify-start">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Navigation */}
-        <div className="flex items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handlePreviousMonth}>
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-3 bg-white rounded-lg shadow-sm p-3 gap-3">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="sm" onClick={handlePreviousMonth} className="flex-1 sm:flex-none">
               <ChevronLeft className="h-4 w-4" />
-              Anterior
+              <span className="hidden sm:inline">Anterior</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleNextMonth}>
-              Próximo
+            <Button variant="outline" size="sm" onClick={handleNextMonth} className="flex-1 sm:flex-none">
+              <span className="hidden sm:inline">Próximo</span>
               <ChevronRight className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={handleTodayClick}>
+            <Button variant="outline" size="sm" onClick={handleTodayClick} className="flex-1 sm:flex-none">
               Hoje
             </Button>
           </div>
 
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-semibold text-primary">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <h2 className="text-lg sm:text-xl font-semibold text-primary text-center">
               {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
             </h2>
             
             <div className="flex items-center gap-2">
               <Select value={currentMonth.toString()} onValueChange={handleMonthChange}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="w-28 sm:w-32">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: 12 }, (_, i) => (
                     <SelectItem key={i} value={i.toString()}>
-                      {format(new Date(2024, i, 1), 'MMMM', { locale: ptBR })}
+                      {format(new Date(2024, i, 1), 'MMM', { locale: ptBR })}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -175,21 +214,21 @@ const Calendar = () => {
           />
         </div>
 
-        {/* Legenda acima do gráfico */}
+        {/* Legenda */}
         <div className="mb-3">
           <div className="bg-white rounded-lg shadow-sm p-3">
             <CalendarLegend />
           </div>
         </div>
 
-        {/* Calendar ocupando toda a largura */}
+        {/* Calendar */}
         <div className="w-full">
           <CalendarGrid
             days={days}
             currentDate={currentDate}
             onDayClick={handleDayClick}
             highlightFilter={highlightFilter}
-            billingData={billingData} // <- passa todos os dados
+            billingData={billingData}
           />
         </div>
 

@@ -130,6 +130,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
                       isToday={isToday(day)}
                       onClick={isSameMonth(day, currentDate) ? () => onDayClick(day) : undefined}
                       highlightFilter={highlightFilter}
+                      billingData={billingData}
                     />
                   </div>
                 ))}
@@ -156,6 +157,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
                       isToday={isToday(day)}
                       onClick={isSameMonth(day, currentDate) ? () => onDayClick(day) : undefined}
                       highlightFilter={highlightFilter}
+                      billingData={billingData}
                     />
                   </div>
                 ))}
@@ -188,6 +190,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
                     isToday={isToday(day)}
                     onClick={isSameMonth(day, currentDate) ? () => onDayClick(day) : undefined}
                     highlightFilter={highlightFilter}
+                    billingData={billingData}
                   />
                 </div>
               ))}

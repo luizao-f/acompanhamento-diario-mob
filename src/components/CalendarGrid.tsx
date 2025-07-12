@@ -1,9 +1,10 @@
-// Atualize o arquivo src/components/CalendarGrid.tsx com a lógica corrigida
+// Atualize o arquivo src/components/CalendarGrid.tsx para incluir fase lútea
 
 import React from 'react';
 import { isSameMonth, isToday, startOfWeek, endOfWeek, addDays, parseISO, isAfter, isBefore, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import DayCell from './DayCell';
+import { getAllLutealPhaseIntervals } from '@/lib/cycleCalculations'; // NOVA IMPORTAÇÃO
 
 interface BillingData {
   date: string;
@@ -22,14 +23,10 @@ interface CalendarGridProps {
 
 // Encontra períodos de menstruação
 function findMenstruationPeriods(billingData: BillingData[]): Array<{start: string, end: string}> {
-  console.log('=== DETECTANDO PERÍODOS DE MENSTRUAÇÃO ===');
-  
   const menstruationDays = billingData
     .filter(d => d.menstruacao === 'forte' || d.menstruacao === 'manchas')
     .map(d => d.date)
     .sort();
-  
-  console.log('Dias de menstruação encontrados:', menstruationDays);
   
   if (menstruationDays.length === 0) return [];
   
@@ -45,21 +42,16 @@ function findMenstruationPeriods(billingData: BillingData[]): Array<{start: stri
       currentPeriod.end = menstruationDays[i];
     } else {
       periods.push(currentPeriod);
-      console.log('Período detectado:', currentPeriod);
       currentPeriod = { start: menstruationDays[i], end: menstruationDays[i] };
     }
   }
   periods.push(currentPeriod);
-  console.log('Último período:', currentPeriod);
-  console.log('Total de períodos:', periods.length);
   
   return periods;
 }
 
-// CORRIGIDO: Encontra TODOS os dias de ovulação
+// Encontra TODOS os dias de ovulação
 function findOvulationDays(billingData: BillingData[]): string[] {
-  console.log('=== DETECTANDO DIAS DE OVULAÇÃO ===');
-  
   const ovulationDays = billingData
     .filter(d => 
       d.sensacao?.includes('escorregadia') &&
@@ -68,11 +60,10 @@ function findOvulationDays(billingData: BillingData[]): string[] {
     .map(d => d.date)
     .sort();
   
-  console.log('Dias de ovulação encontrados:', ovulationDays);
   return ovulationDays;
 }
 
-// CORRIGIDO: Agrupa dias de ovulação consecutivos e retorna o último de cada grupo
+// Agrupa dias de ovulação consecutivos e retorna o último de cada grupo
 function getLastOvulationOfEachPeriod(ovulationDays: string[]): string[] {
   if (ovulationDays.length === 0) return [];
   
@@ -84,49 +75,35 @@ function getLastOvulationOfEachPeriod(ovulationDays: string[]): string[] {
     const currentDate = parseISO(ovulationDays[i]);
     const daysDiff = differenceInDays(currentDate, prevDate);
     
-    if (daysDiff <= 3) { // Se estão próximos (até 3 dias), fazem parte do mesmo período
+    if (daysDiff <= 3) {
       currentGroup.push(ovulationDays[i]);
     } else {
-      // Novo período de ovulação
       groups.push(currentGroup);
       currentGroup = [ovulationDays[i]];
     }
   }
   groups.push(currentGroup);
   
-  // Retorna o último dia de cada período de ovulação
-  const lastOvulationDays = groups.map(group => group[group.length - 1]);
-  
-  console.log('Períodos de ovulação agrupados:', groups);
-  console.log('Últimos dias de cada período:', lastOvulationDays);
-  
-  return lastOvulationDays;
+  return groups.map(group => group[group.length - 1]);
 }
 
-// CORRIGIDO: Calcula intervalos considerando apenas o último dia de ovulação de cada período
+// Calcula intervalos do ciclo (menstruação até 3 dias após ovulação)
 function getAllCycleIntervals(billingData: BillingData[]): Array<{start: Date, end: Date}> {
-  console.log('=== CALCULANDO INTERVALOS DO CICLO ===');
-  
   const menstruationPeriods = findMenstruationPeriods(billingData);
   const allOvulationDays = findOvulationDays(billingData);
   const lastOvulationDays = getLastOvulationOfEachPeriod(allOvulationDays);
   
   if (menstruationPeriods.length === 0 || lastOvulationDays.length === 0) {
-    console.log('Não há períodos ou ovulações suficientes');
     return [];
   }
   
   const intervals: Array<{start: Date, end: Date}> = [];
   
-  // Para cada período de menstruação, encontrar a ovulação mais próxima APÓS ele
-  menstruationPeriods.forEach((period, index) => {
+  menstruationPeriods.forEach((period) => {
     const periodStart = parseISO(period.start);
     const periodEnd = parseISO(period.end);
     
-    console.log(`\nAnalisando período ${index + 1}: ${period.start} a ${period.end}`);
-    
-    // Encontrar ovulação que acontece DEPOIS do fim da menstruação
-    const validOvulations = lastOvulationDays // USANDO APENAS OS ÚLTIMOS DIAS
+    const validOvulations = lastOvulationDays
       .map(date => parseISO(date))
       .filter(ovulationDate => ovulationDate > periodEnd)
       .sort((a, b) => a.getTime() - b.getTime());
@@ -134,30 +111,21 @@ function getAllCycleIntervals(billingData: BillingData[]): Array<{start: Date, e
     if (validOvulations.length > 0) {
       const nextOvulation = validOvulations[0];
       
-      // Verificar se há outro período de menstruação entre este e a ovulação
-      const hasIntermediatePeriod = menstruationPeriods.some((otherPeriod, otherIndex) => {
-        if (otherIndex === index) return false;
+      const hasIntermediatePeriod = menstruationPeriods.some((otherPeriod) => {
         const otherStart = parseISO(otherPeriod.start);
         return otherStart > periodEnd && otherStart < nextOvulation;
       });
       
       if (!hasIntermediatePeriod) {
-        const cycleEnd = addDays(nextOvulation, 3); // +3 dias após o ÚLTIMO dia de ovulação
+        const cycleEnd = addDays(nextOvulation, 3);
         intervals.push({
           start: periodStart,
           end: cycleEnd
         });
-        
-        console.log(`Ciclo criado: ${period.start} -> último dia ovulação ${nextOvulation.toISOString().split('T')[0]} -> fim ${cycleEnd.toISOString().split('T')[0]}`);
-      } else {
-        console.log('Período intermediário encontrado, pulando este ciclo');
       }
-    } else {
-      console.log('Nenhuma ovulação encontrada após este período');
     }
   });
   
-  console.log(`Total de ciclos detectados: ${intervals.length}`);
   return intervals;
 }
 
@@ -176,7 +144,8 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
   }
 
   const cycleIntervals = getAllCycleIntervals(billingData);
-  const ovulationDays = findOvulationDays(billingData); // TODOS os dias de ovulação para marcação
+  const lutealPhaseIntervals = getAllLutealPhaseIntervals(billingData); // NOVA FUNCIONALIDADE
+  const ovulationDays = findOvulationDays(billingData);
 
   const weeks: Date[][] = [];
   for (let i = 0; i < totalDays.length; i += 7) {
@@ -197,8 +166,8 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
           const weekStart = week[0];
           const weekEnd = week[week.length - 1];
 
-          // Calcular barras para TODOS os ciclos que intersectam esta semana
-          const weekBars = cycleIntervals
+          // Barras vermelhas do ciclo (menstruação até 3 dias após ovulação)
+          const cycleWeekBars = cycleIntervals
             .map((interval, intervalIndex) => {
               const { start: barStart, end: barEnd } = interval;
               
@@ -229,9 +198,44 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
             })
             .filter(Boolean);
 
+          // NOVA FUNCIONALIDADE: Barras verdes da fase lútea
+          const lutealWeekBars = lutealPhaseIntervals
+            .map((interval, intervalIndex) => {
+              const { start: barStart, end: barEnd } = interval;
+              
+              if (barEnd < weekStart || barStart > weekEnd) return null;
+              
+              const segmentStart = isAfter(barStart, weekStart) ? barStart : weekStart;
+              const segmentEnd = isBefore(barEnd, weekEnd) ? barEnd : weekEnd;
+              
+              if (isAfter(segmentStart, segmentEnd)) return null;
+              
+              const barColStart = week.findIndex(d => d.getTime() === segmentStart.getTime());
+              const barColEnd = week.findIndex(d => d.getTime() === segmentEnd.getTime());
+              
+              const from = barColStart !== -1 ? barColStart : 0;
+              const to = barColEnd !== -1 ? barColEnd : 6;
+              
+              return (
+                <div
+                  key={`luteal-bar-${intervalIndex}`}
+                  className="absolute bottom-1 h-0.5 bg-green-500 opacity-50 rounded-full z-0"
+                  style={{
+                    left: `${(from / 7) * 100}%`,
+                    width: `${((to - from + 1) / 7) * 100}%`
+                  }}
+                />
+              );
+            })
+            .filter(Boolean);
+
           return (
             <div key={weekIdx} className="relative grid grid-cols-7">
-              {weekBars}
+              {/* Barras vermelhas do ciclo */}
+              {cycleWeekBars}
+              
+              {/* NOVA: Barras verdes da fase lútea */}
+              {lutealWeekBars}
               
               {week.map((day) => (
                 <div key={day.toISOString()} className="relative z-10">
@@ -242,7 +246,7 @@ const CalendarGrid: React.FC<CalendarGridProps> = ({
                     onClick={isSameMonth(day, currentDate) ? () => onDayClick(day) : undefined}
                     highlightFilter={highlightFilter}
                     billingData={billingData}
-                    ovulationDays={ovulationDays} // TODOS os dias para marcação visual
+                    ovulationDays={ovulationDays}
                   />
                 </div>
               ))}

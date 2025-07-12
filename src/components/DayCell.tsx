@@ -1,4 +1,4 @@
-// Atualize o arquivo src/components/DayCell.tsx com marcação mais sutil
+// Atualize o arquivo src/components/DayCell.tsx para incluir numeração da fase lútea
 
 import React from 'react';
 import { format } from 'date-fns';
@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { getBillingData } from '@/lib/supabase';
 import { Droplets, Heart, Circle } from 'lucide-react';
-import { calculateCycleDay } from '@/lib/cycleCalculations';
+import { calculateCycleDay, calculateLutealPhaseDay } from '@/lib/cycleCalculations'; // NOVA IMPORTAÇÃO
 
 interface DayCellProps {
   day: Date;
@@ -35,6 +35,7 @@ const DayCell: React.FC<DayCellProps> = ({
   });
 
   const cycleDay = calculateCycleDay(day, billingData);
+  const lutealPhaseDay = calculateLutealPhaseDay(day, billingData); // NOVA FUNCIONALIDADE
   const isOvulationDay = ovulationDays.includes(dayString);
 
   const getMenstruationColor = () => {
@@ -196,12 +197,22 @@ const DayCell: React.FC<DayCellProps> = ({
           </div>
         )}
 
-        {/* CORRIGIDO: Marcação de ovulação mais sutil */}
+        {/* NOVA FUNCIONALIDADE: Número da fase lútea no canto inferior esquerdo */}
+        {lutealPhaseDay && (
+          <div className="absolute bottom-1 left-1">
+            <span className={cn(
+              "text-xs font-medium opacity-50",
+              getMenstruationColor() ? "text-white" : "text-green-600"
+            )}>
+              {lutealPhaseDay}°
+            </span>
+          </div>
+        )}
+
+        {/* Marcação de ovulação */}
         {isOvulationDay && (
           <div className="absolute bottom-0 left-0 right-0">
-            {/* Barra azul mais sutil */}
             <div className="bg-blue-400 h-0.5 w-full opacity-70"></div>
-            {/* Texto menor e mais discreto */}
             <div className="bg-blue-400 text-white text-[10px] px-1 py-0.5 text-center font-medium opacity-90">
               OVULAÇÃO
             </div>

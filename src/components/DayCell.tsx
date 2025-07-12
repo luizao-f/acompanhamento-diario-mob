@@ -1,4 +1,4 @@
-// Atualize o arquivo src/components/DayCell.tsx para incluir marcação de ovulação
+// Atualize o arquivo src/components/DayCell.tsx com marcação mais sutil
 
 import React from 'react';
 import { format } from 'date-fns';
@@ -15,7 +15,7 @@ interface DayCellProps {
   onClick?: () => void;
   highlightFilter?: string | null;
   billingData?: any[];
-  ovulationDays?: string[]; // NOVA PROP para dias de ovulação
+  ovulationDays?: string[];
 }
 
 const DayCell: React.FC<DayCellProps> = ({ 
@@ -25,7 +25,7 @@ const DayCell: React.FC<DayCellProps> = ({
   onClick, 
   highlightFilter,
   billingData = [],
-  ovulationDays = [] // NOVA PROP
+  ovulationDays = []
 }) => {
   const dayString = format(day, 'yyyy-MM-dd');
   
@@ -35,8 +35,6 @@ const DayCell: React.FC<DayCellProps> = ({
   });
 
   const cycleDay = calculateCycleDay(day, billingData);
-  
-  // NOVA FUNCIONALIDADE: Verificar se é dia de ovulação
   const isOvulationDay = ovulationDays.includes(dayString);
 
   const getMenstruationColor = () => {
@@ -198,11 +196,13 @@ const DayCell: React.FC<DayCellProps> = ({
           </div>
         )}
 
-        {/* NOVA FUNCIONALIDADE: Marcação de ovulação */}
+        {/* CORRIGIDO: Marcação de ovulação mais sutil */}
         {isOvulationDay && (
           <div className="absolute bottom-0 left-0 right-0">
-            <div className="bg-blue-500 h-1 w-full"></div>
-            <div className="bg-blue-500 text-white text-xs px-1 py-0.5 text-center rounded-t-sm">
+            {/* Barra azul mais sutil */}
+            <div className="bg-blue-400 h-0.5 w-full opacity-70"></div>
+            {/* Texto menor e mais discreto */}
+            <div className="bg-blue-400 text-white text-[10px] px-1 py-0.5 text-center font-medium opacity-90">
               OVULAÇÃO
             </div>
           </div>

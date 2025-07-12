@@ -1,4 +1,4 @@
-// Atualize o arquivo src/components/DayCell.tsx com numeração mais sutil
+// Atualize o arquivo src/components/DayCell.tsx para incluir marcação de ovulação
 
 import React from 'react';
 import { format } from 'date-fns';
@@ -15,6 +15,7 @@ interface DayCellProps {
   onClick?: () => void;
   highlightFilter?: string | null;
   billingData?: any[];
+  ovulationDays?: string[]; // NOVA PROP para dias de ovulação
 }
 
 const DayCell: React.FC<DayCellProps> = ({ 
@@ -23,7 +24,8 @@ const DayCell: React.FC<DayCellProps> = ({
   isToday, 
   onClick, 
   highlightFilter,
-  billingData = []
+  billingData = [],
+  ovulationDays = [] // NOVA PROP
 }) => {
   const dayString = format(day, 'yyyy-MM-dd');
   
@@ -33,6 +35,9 @@ const DayCell: React.FC<DayCellProps> = ({
   });
 
   const cycleDay = calculateCycleDay(day, billingData);
+  
+  // NOVA FUNCIONALIDADE: Verificar se é dia de ovulação
+  const isOvulationDay = ovulationDays.includes(dayString);
 
   const getMenstruationColor = () => {
     if (!dayBillingData?.menstruacao || dayBillingData.menstruacao === 'sem_sangramento') return '';
@@ -181,7 +186,7 @@ const DayCell: React.FC<DayCellProps> = ({
 
         {renderMucoTags()}
 
-        {/* OPÇÃO 1: Número do ciclo no canto inferior direito - mais sutil */}
+        {/* Número do ciclo no canto inferior direito */}
         {cycleDay && (
           <div className="absolute bottom-1 right-1">
             <span className={cn(
@@ -193,29 +198,15 @@ const DayCell: React.FC<DayCellProps> = ({
           </div>
         )}
 
-        {/* OPÇÃO 2: Alternativa - como uma pequena bolinha no canto superior direito */}
-        {/* {cycleDay && (
-          <div className="absolute top-1 right-1">
-            <div className={cn(
-              "w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold",
-              getMenstruationColor() ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
-            )}>
-              {cycleDay}
+        {/* NOVA FUNCIONALIDADE: Marcação de ovulação */}
+        {isOvulationDay && (
+          <div className="absolute bottom-0 left-0 right-0">
+            <div className="bg-blue-500 h-1 w-full"></div>
+            <div className="bg-blue-500 text-white text-xs px-1 py-0.5 text-center rounded-t-sm">
+              OVULAÇÃO
             </div>
           </div>
-        )} */}
-
-        {/* OPÇÃO 3: Como linha inferior discreta */}
-        {/* {cycleDay && (
-          <div className="absolute bottom-0 left-0 right-0 flex justify-center">
-            <span className={cn(
-              "text-xs px-1 py-0.5 rounded-t-sm",
-              getMenstruationColor() ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
-            )}>
-              {cycleDay}°
-            </span>
-          </div>
-        )} */}
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-// Atualize o arquivo src/components/DayCell.tsx
+// Atualize o arquivo src/components/DayCell.tsx com numeração mais sutil
 
 import React from 'react';
 import { format } from 'date-fns';
@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { getBillingData } from '@/lib/supabase';
 import { Droplets, Heart, Circle } from 'lucide-react';
-import { calculateCycleDay } from '@/lib/cycleCalculations'; // NOVA IMPORTAÇÃO
+import { calculateCycleDay } from '@/lib/cycleCalculations';
 
 interface DayCellProps {
   day: Date;
@@ -14,7 +14,7 @@ interface DayCellProps {
   isToday: boolean;
   onClick?: () => void;
   highlightFilter?: string | null;
-  billingData?: any[]; // NOVA PROP para receber todos os dados do billing
+  billingData?: any[];
 }
 
 const DayCell: React.FC<DayCellProps> = ({ 
@@ -23,7 +23,7 @@ const DayCell: React.FC<DayCellProps> = ({
   isToday, 
   onClick, 
   highlightFilter,
-  billingData = [] // NOVA PROP
+  billingData = []
 }) => {
   const dayString = format(day, 'yyyy-MM-dd');
   
@@ -32,7 +32,6 @@ const DayCell: React.FC<DayCellProps> = ({
     queryFn: () => getBillingData(dayString),
   });
 
-  // NOVA FUNCIONALIDADE: Calcular o dia do ciclo
   const cycleDay = calculateCycleDay(day, billingData);
 
   const getMenstruationColor = () => {
@@ -65,7 +64,6 @@ const DayCell: React.FC<DayCellProps> = ({
     const icons = [];
     const highlighted = isHighlighted();
 
-    // Ícones de sensação
     if (dayBillingData.sensacao?.includes('seca')) {
       icons.push(
         <Circle 
@@ -111,7 +109,6 @@ const DayCell: React.FC<DayCellProps> = ({
       );
     }
 
-    // Ícone de relação sexual
     if (dayBillingData.relacao_sexual) {
       icons.push(
         <Heart 
@@ -169,25 +166,13 @@ const DayCell: React.FC<DayCellProps> = ({
       onClick={onClick}
     >
       <div className="flex flex-col h-full">
-        {/* ATUALIZADO: Header com número do dia e dia do ciclo */}
-        <div className="flex justify-between items-start mb-1">
-          <div className={cn(
-            "text-sm font-medium",
-            isToday && "text-primary font-bold",
-            getMenstruationColor() && "text-white"
-          )}>
-            {format(day, 'd')}
-          </div>
-          
-          {/* NOVA FUNCIONALIDADE: Mostrar o dia do ciclo */}
-          {cycleDay && (
-            <div className={cn(
-              "text-xs font-bold px-1 py-0.5 rounded",
-              getMenstruationColor() ? "bg-white/20 text-white" : "bg-primary/10 text-primary"
-            )}>
-              {cycleDay}°
-            </div>
-          )}
+        {/* Header apenas com o número do dia */}
+        <div className={cn(
+          "text-sm font-medium mb-1",
+          isToday && "text-primary font-bold",
+          getMenstruationColor() && "text-white"
+        )}>
+          {format(day, 'd')}
         </div>
         
         <div className="flex flex-wrap gap-1 flex-1">
@@ -195,6 +180,42 @@ const DayCell: React.FC<DayCellProps> = ({
         </div>
 
         {renderMucoTags()}
+
+        {/* OPÇÃO 1: Número do ciclo no canto inferior direito - mais sutil */}
+        {cycleDay && (
+          <div className="absolute bottom-1 right-1">
+            <span className={cn(
+              "text-xs font-medium opacity-60",
+              getMenstruationColor() ? "text-white" : "text-gray-500"
+            )}>
+              {cycleDay}°
+            </span>
+          </div>
+        )}
+
+        {/* OPÇÃO 2: Alternativa - como uma pequena bolinha no canto superior direito */}
+        {/* {cycleDay && (
+          <div className="absolute top-1 right-1">
+            <div className={cn(
+              "w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold",
+              getMenstruationColor() ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
+            )}>
+              {cycleDay}
+            </div>
+          </div>
+        )} */}
+
+        {/* OPÇÃO 3: Como linha inferior discreta */}
+        {/* {cycleDay && (
+          <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+            <span className={cn(
+              "text-xs px-1 py-0.5 rounded-t-sm",
+              getMenstruationColor() ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
+            )}>
+              {cycleDay}°
+            </span>
+          </div>
+        )} */}
       </div>
     </div>
   );

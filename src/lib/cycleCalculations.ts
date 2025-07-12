@@ -1,6 +1,6 @@
-// Adicione esta função no arquivo src/lib/cycleCalculations.ts (crie este arquivo)
+// Substitua o conteúdo completo do arquivo src/lib/cycleCalculations.ts
 
-import { format, parseISO, differenceInDays, addDays } from 'date-fns';
+import { format, parseISO, differenceInDays, addDays, startOfDay } from 'date-fns';
 
 interface BillingData {
   date: string;
@@ -8,9 +8,10 @@ interface BillingData {
   [key: string]: any;
 }
 
-// NOVA FUNÇÃO: Calcula o dia da fase lútea (pós-ovulatória)
+// CORRIGIDA: Calcula o dia da fase lútea (pós-ovulatória) - agora funciona no mês atual
 export function calculateLutealPhaseDay(targetDate: Date, billingData: BillingData[]): number | null {
   const targetDateString = format(targetDate, 'yyyy-MM-dd');
+  const today = startOfDay(new Date());
   
   // Encontrar períodos de menstruação
   const menstruationPeriods = findMenstruationPeriods(billingData);
@@ -24,7 +25,7 @@ export function calculateLutealPhaseDay(targetDate: Date, billingData: BillingDa
     .map(d => d.date)
     .sort();
 
-  if (menstruationPeriods.length === 0 || ovulationDays.length === 0) return null;
+  if (ovulationDays.length === 0) return null;
 
   // Agrupar dias de ovulação consecutivos
   const ovulationGroups = getOvulationGroups(ovulationDays);
@@ -34,15 +35,22 @@ export function calculateLutealPhaseDay(targetDate: Date, billingData: BillingDa
     const lastOvulationDate = parseISO(group[group.length - 1]);
     const lutealPhaseStart = addDays(lastOvulationDate, 4); // 4° dia após ovulação
     
-    // Encontrar o próximo período de menstruação após esta ovulação
+    // CORRIGIDO: Encontrar o próximo período de menstruação após esta ovulação
     const nextMenstruation = menstruationPeriods.find(period => {
       const periodStart = parseISO(period.start);
       return periodStart > lastOvulationDate;
     });
     
-    if (!nextMenstruation) continue;
+    let lutealPhaseEnd: Date;
     
-    const lutealPhaseEnd = addDays(parseISO(nextMenstruation.start), -1); // 1 dia antes da menstruação
+    if (nextMenstruation) {
+      // Se há próxima menstruação, termina 1 dia antes
+      lutealPhaseEnd = addDays(parseISO(nextMenstruation.start), -1);
+    } else {
+      // NOVO: Se não há próxima menstruação, vai até hoje (máximo)
+      lutealPhaseEnd = today;
+    }
+    
     const targetDateParsed = parseISO(targetDateString);
     
     // Verificar se a data alvo está dentro desta fase lútea
@@ -55,10 +63,11 @@ export function calculateLutealPhaseDay(targetDate: Date, billingData: BillingDa
   return null;
 }
 
-// NOVA FUNÇÃO: Calcula todos os intervalos da fase lútea
+// CORRIGIDA: Calcula todos os intervalos da fase lútea - agora inclui período atual
 export function getAllLutealPhaseIntervals(billingData: BillingData[]): Array<{start: Date, end: Date}> {
-  console.log('=== CALCULANDO INTERVALOS DA FASE LÚTEA ===');
+  console.log('=== CALCULANDO INTERVALOS DA FASE LÚTEA (INCLUINDO ATUAL) ===');
   
+  const today = startOfDay(new Date());
   const menstruationPeriods = findMenstruationPeriods(billingData);
   const ovulationDays = billingData
     .filter(d => 
@@ -68,8 +77,8 @@ export function getAllLutealPhaseIntervals(billingData: BillingData[]): Array<{s
     .map(d => d.date)
     .sort();
 
-  if (menstruationPeriods.length === 0 || ovulationDays.length === 0) {
-    console.log('Não há dados suficientes para fase lútea');
+  if (ovulationDays.length === 0) {
+    console.log('Não há dados de ovulação');
     return [];
   }
 
@@ -80,24 +89,35 @@ export function getAllLutealPhaseIntervals(billingData: BillingData[]): Array<{s
     const lastOvulationDate = parseISO(group[group.length - 1]);
     const lutealPhaseStart = addDays(lastOvulationDate, 4); // 4° dia após ovulação
     
-    // Encontrar o próximo período de menstruação
+    // CORRIGIDO: Encontrar o próximo período de menstruação
     const nextMenstruation = menstruationPeriods.find(period => {
       const periodStart = parseISO(period.start);
       return periodStart > lastOvulationDate;
     });
     
+    let lutealPhaseEnd: Date;
+    
     if (nextMenstruation) {
-      const lutealPhaseEnd = addDays(parseISO(nextMenstruation.start), -1);
+      // Se há próxima menstruação, termina 1 dia antes
+      lutealPhaseEnd = addDays(parseISO(nextMenstruation.start), -1);
+      console.log(`Fase lútea ${index + 1}: ${format(lutealPhaseStart, 'yyyy-MM-dd')} até ${format(lutealPhaseEnd, 'yyyy-MM-dd')} (com próxima menstruação)`);
+    } else {
+      // NOVO: Se não há próxima menstruação, vai até hoje
+      lutealPhaseEnd = today;
+      console.log(`Fase lútea ${index + 1}: ${format(lutealPhaseStart, 'yyyy-MM-dd')} até ${format(lutealPhaseEnd, 'yyyy-MM-dd')} (até hoje)`);
+    }
+    
+    // Só adicionar se a fase lútea for válida e não for no futuro
+    if (lutealPhaseStart <= lutealPhaseEnd && lutealPhaseStart <= today) {
+      // CORRIGIDO: Se o fim for no futuro, limitar ao dia de hoje
+      const adjustedEnd = lutealPhaseEnd > today ? today : lutealPhaseEnd;
       
-      // Só adicionar se a fase lútea for válida (pelo menos 1 dia)
-      if (lutealPhaseStart <= lutealPhaseEnd) {
-        intervals.push({
-          start: lutealPhaseStart,
-          end: lutealPhaseEnd
-        });
-        
-        console.log(`Fase lútea ${index + 1}: ${format(lutealPhaseStart, 'yyyy-MM-dd')} até ${format(lutealPhaseEnd, 'yyyy-MM-dd')}`);
-      }
+      intervals.push({
+        start: lutealPhaseStart,
+        end: adjustedEnd
+      });
+      
+      console.log(`Fase lútea adicionada: ${format(lutealPhaseStart, 'yyyy-MM-dd')} até ${format(adjustedEnd, 'yyyy-MM-dd')}`);
     }
   });
   
